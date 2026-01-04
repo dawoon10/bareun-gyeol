@@ -12,20 +12,13 @@
         body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; }
         .toss-card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
         .hidden { display: none !important; }
-        
-        /* 카메라 및 프라이버시 블러 */
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: blur(35px) brightness(0.7); }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
-        
-        /* 스캔 레이저 */
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, transparent, #3182f6, transparent); z-index: 20; animation: scan 2.5s infinite ease-in-out; }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
-
-        /* 캐릭터 애니메이션 */
         .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
         @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(40deg); } }
-        
         .pop { animation: pop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
         @keyframes pop { 0% { transform: scale(0.8); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
@@ -37,21 +30,11 @@
             <div class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold mb-6 uppercase">AI Healthcare</div>
             <h1 class="text-5xl font-black mb-6 tracking-tight">바른결</h1>
             <p class="text-gray-500 text-lg mb-12 font-medium">프라이버시는 지키고,<br><span class="text-gray-900 font-bold">목 건강은 정밀하게</span> 분석하세요.</p>
-            <div class="w-full space-y-3 mb-16">
-                <div class="toss-card flex items-center gap-4 border border-gray-50 text-left">
-                    <div class="text-2xl">🛡️</div>
-                    <div><p class="font-bold">안심 블러 분석</p><p class="text-sm text-gray-400">얼굴 노출 걱정 없는 안전 분석</p></div>
-                </div>
-                <div class="toss-card flex items-center gap-4 border border-gray-50 text-left">
-                    <div class="text-2xl">📊</div>
-                    <div><p class="font-bold">맞춤 리포트</p><p class="text-sm text-gray-400">하중 비유와 AI 맞춤 가이드</p></div>
-                </div>
-            </div>
             <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all">시작하기</button>
         </div>
 
         <div id="step2" class="hidden flex flex-col items-center text-center mt-20">
-            <h2 class="text-3xl font-bold mb-10 leading-tight">가장 편안한 자세로<br>정면을 봐주세요</h2>
+            <h2 class="text-3xl font-bold mb-10 leading-tight text-[#191f28]">가장 편안한 자세로<br>정면을 봐주세요</h2>
             <div class="w-24 h-32 relative mb-16 scale-125">
                 <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto relative z-10"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-80"></div>
@@ -64,7 +47,7 @@
                 <div class="scan-line"></div>
                 <video id="video" playsinline></video>
                 <canvas id="canvas"></canvas>
-                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20 border border-blue-50">분석 중...</div>
+                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20">분석 중...</div>
             </div>
             <div id="analysis-finish" class="hidden w-full text-center">
                 <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold">교정 운동 시작</button>
@@ -72,7 +55,7 @@
         </div>
 
         <div id="step4" class="hidden flex flex-col items-center mt-10">
-            <h2 class="text-2xl font-bold mb-8 text-center leading-snug">고개를 깊게 숙여<br>목 뒤 근육을 늘리세요</h2>
+            <h2 class="text-2xl font-bold mb-8 text-center leading-snug text-[#191f28]">고개를 깊게 숙여<br>목 뒤 근육을 늘리세요</h2>
             <div class="w-24 h-32 relative mb-12 scale-110">
                 <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch shadow-md relative z-10"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-80"></div>
@@ -84,26 +67,23 @@
         </div>
 
         <div id="step5" class="hidden flex flex-col gap-5 pb-10">
-            <h2 class="text-2xl font-bold my-6 text-center">AI 정밀 분석 결과</h2>
-            
+            <h2 class="text-2xl font-bold my-6 text-center text-[#191f28]">AI 정밀 분석 결과</h2>
             <div class="toss-card text-center border border-gray-50">
                 <div class="flex justify-between items-start mb-6 px-2">
                     <div class="text-left">
-                        <p class="text-gray-400 text-xs font-bold mb-1">MEASURED ANGLE</p>
+                        <p class="text-gray-400 text-xs font-bold mb-1 uppercase">Angle</p>
                         <p id="final-angle" class="text-3xl font-black text-gray-900">0°</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-gray-400 text-xs font-bold mb-1">TOTAL SCORE</p>
+                        <p class="text-gray-400 text-xs font-bold mb-1 uppercase">Score</p>
                         <p id="final-score" class="text-3xl font-black">0점</p>
                     </div>
                 </div>
-                
                 <div id="comment-box" class="p-8 rounded-[30px] font-medium leading-relaxed mb-4">
                     <p id="final-comment" class="text-lg"></p>
                 </div>
                 <p class="text-blue-600 font-bold text-sm">🎉 축하합니다! 오늘의 운동도 완료했습니다!</p>
             </div>
-
             <div class="toss-card border border-gray-50">
                 <h3 class="font-bold text-gray-900 mb-5 flex items-center gap-2">💡 AI 맞춤 가이드</h3>
                 <div class="space-y-5">
@@ -117,14 +97,13 @@
                     </div>
                 </div>
             </div>
-
             <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg mt-4 shadow-md">다시 기록하기</button>
         </div>
+
     </div>
 
     <script>
-        let faceMesh; let count = 10; let finalAngle = 0;
-        let isDown = false;
+        let faceMesh; let count = 10; let finalAngle = 0; let isDown = false;
 
         function showStep(n) {
             document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden'));
@@ -146,8 +125,20 @@
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
                     drawConnectors(ctx, lms, FACEMESH_TESSELATION, {color: '#3182f640', lineWidth: 1});
-                    const nose = lms[1]; const ear = lms[234];
-                    finalAngle = Math.round(Math.abs(nose.x - ear.x) * 480);
+                    
+                    // [해결책] 거리 오차 보정 로직
+                    // 얼굴의 가로폭(왼쪽 끝 귀 ~ 오른쪽 끝 귀)을 기준값(1.0)으로 삼습니다.
+                    const leftEar = lms[234];
+                    const rightEar = lms[454];
+                    const faceWidth = Math.sqrt(Math.pow(rightEar.x - leftEar.x, 2) + Math.pow(rightEar.y - leftEar.y, 2));
+                    
+                    const nose = lms[1];
+                    // 코가 얼굴 중심에서 옆으로 얼마나 벗어났는지를 비율로 계산 (폭 대비 상대 거리)
+                    const horizontalShift = Math.abs(nose.x - (leftEar.x + rightEar.x) / 2) / faceWidth;
+                    
+                    // 비율을 각도로 환산 (약 90도 범위 내로 튜닝)
+                    finalAngle = Math.round(horizontalShift * 160); 
+
                     document.getElementById('angle-tag').innerText = `측정 각도: ${finalAngle}°`;
 
                     if (!document.getElementById('step4').classList.contains('hidden')) {
@@ -199,13 +190,13 @@
                 box.style.backgroundColor = "#fff7e6";
                 recom.innerText = "15회 / 3세트 가이드";
                 scoreDisplay.style.color = "#faad14";
-                effectDesc.innerText = "굽어가는 목 정렬을 바로잡아 만성적인 어깨 결림과 거북목 특유의 피로감을 눈에 띄게 줄여줍니다.";
+                effectDesc.innerText = "굽어가는 목 정렬을 바로잡아 만성적인 어깨 결림과 거북목 특유의 피로감을 줄여줍니다.";
             } else {
                 comment.innerHTML = `정말 훌륭해요! 목의 무게가 <span class="text-blue-600 font-bold">깃털처럼 가볍게</span> 느껴지는 완벽한 상태입니다. ✨`;
                 box.style.backgroundColor = "#e6f7ff";
                 recom.innerText = "10회 / 1세트 가이드";
                 scoreDisplay.style.color = "#1890ff";
-                effectDesc.innerText = "현재의 완벽한 정렬을 유지하며, 장시간 업무 시 발생할 수 있는 긴장성 두통을 원천적으로 방지합니다.";
+                effectDesc.innerText = "현재의 완벽한 정렬을 유지하며, 장시간 업무 시 발생할 수 있는 긴장성 두통을 방지합니다.";
             }
         }
     </script>
