@@ -16,8 +16,6 @@
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: blur(35px) brightness(0.7); }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
-        /* 그래프가 뒤집히지 않도록 별도 스타일 적용 */
-        #historyChart { transform: none !important; } 
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, transparent, #3182f6, transparent); z-index: 20; animation: scan 2.5s infinite ease-in-out; }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
         .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
@@ -29,8 +27,8 @@
     <div class="w-full max-w-md flex flex-col p-6">
 
         <div id="step1" class="flex flex-col items-center text-center mt-10">
-            <div class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold mb-6 tracking-widest">AI HEALTHCARE</div>
-            <h1 class="text-5xl font-black mb-6 tracking-tight">바른결</h1>
+            <div class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold mb-6 tracking-widest uppercase">AI Healthcare</div>
+            <h1 class="text-5xl font-black mb-6 tracking-tight italic">바른결</h1>
             <p id="main-welcome-msg" class="text-gray-500 text-lg mb-12 font-medium">로딩 중...</p>
             <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all mb-4">진단 시작하기</button>
             <button onclick="resetAllData()" class="text-gray-400 text-sm underline opacity-50 hover:opacity-100 transition-opacity">데이터 초기화 (테스트용)</button>
@@ -50,7 +48,7 @@
                 <div class="scan-line"></div>
                 <video id="video" playsinline></video>
                 <canvas id="canvas"></canvas>
-                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20">실시간 분석 중...</div>
+                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20">정밀 스캔 중...</div>
             </div>
             <div id="analysis-finish" class="hidden w-full text-center">
                 <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold">교정 운동 시작</button>
@@ -71,7 +69,7 @@
 
         <div id="step5" class="hidden flex flex-col gap-5 pb-10">
             <div class="text-center py-4">
-                <h2 id="report-welcome-title" class="text-2xl font-bold text-[#191f28]"></h2>
+                <h2 id="report-welcome-title" class="text-2xl font-bold"></h2>
                 <p id="report-welcome-sub" class="text-blue-600 font-bold mt-1"></p>
             </div>
 
@@ -80,51 +78,57 @@
                     <div class="text-left">
                         <p class="text-gray-400 text-xs font-bold mb-1">나의 각도</p>
                         <p id="final-angle" class="text-3xl font-black text-gray-900">0°</p>
-                        <p class="text-blue-500 text-[10px] font-bold mt-1">정상 범위: 0~15°</p>
+                        <p class="text-blue-500 text-[10px] font-bold mt-1 tracking-tighter">정상 범위: 0~15°</p>
                     </div>
                     <div class="text-right">
                         <p class="text-gray-400 text-xs font-bold mb-1">건강 점수</p>
-                        <p id="final-score" class="text-3xl font-black">0점</p>
+                        <p id="final-score" class="text-3xl font-black text-gray-900">0점</p>
                     </div>
                 </div>
-                <div id="comment-box" class="p-8 rounded-[32px] font-medium leading-relaxed mb-2 shadow-sm">
+                <div id="comment-box" class="p-8 rounded-[32px] font-medium leading-relaxed mb-4 shadow-sm">
                     <p id="final-comment" class="text-lg"></p>
                 </div>
-                <p id="period-info" class="text-gray-400 text-sm font-medium mt-3"></p>
-            </div>
-
-            <div class="toss-card border border-gray-50">
-                <h3 class="font-bold text-gray-900 mb-4">📈 나의 개선 추이</h3>
-                <div class="h-[200px] w-full">
-                    <canvas id="historyChart"></canvas>
+                <div class="bg-blue-50 p-4 rounded-2xl text-left border border-blue-100">
+                    <p id="period-info" class="text-blue-700 text-sm font-bold"></p>
                 </div>
             </div>
 
             <div class="toss-card border border-gray-50">
                 <h3 class="font-bold text-gray-900 mb-5 flex items-center gap-2">💡 AI 맞춤 솔루션</h3>
-                <div class="space-y-5">
+                <div class="space-y-6">
                     <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
                         <span class="text-gray-500 font-medium text-sm">추천 루틴</span>
                         <span id="recom-text" class="font-bold text-[#3182f6]"></span>
                     </div>
-                    <div id="effect-description" class="px-1 text-sm leading-relaxed text-gray-500 font-medium"></div>
+                    <div class="px-1">
+                        <p class="font-bold text-gray-800 mb-3 text-sm">✨ 기대 효과 안내</p>
+                        <div id="effect-description" class="text-gray-500 font-medium text-sm leading-relaxed"></div>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg mt-4 shadow-md">다시 측정하기</button>
+            <div class="toss-card border border-gray-50">
+                <h3 class="font-bold text-gray-900 mb-4">📈 나의 개선 추이</h3>
+                <div class="h-[220px] w-full">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg mt-4 shadow-md active:scale-95 transition-all">다시 측정하기</button>
         </div>
     </div>
 
     <script>
         let faceMesh; let count = 10; let finalAngle = 0; let isDown = false;
-        
-        function loadData() {
-            const visitCount = parseInt(localStorage.getItem('visitCount') || '0');
+        let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
+        let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
+
+        window.onload = () => {
             const welcome = document.getElementById('main-welcome-msg');
             welcome.innerHTML = visitCount === 0 
                 ? "당신의 첫 측정을 환영해요!<br><span class='text-gray-900 font-bold'>3D 정밀 분석</span>으로 시작해볼까요?"
                 : "다시 만나서 반가워요!<br><span class='text-gray-900 font-bold'>더 가벼운 목</span>을 만들어봐요.";
-        }
+        };
 
         function resetAllData() {
             if(confirm("모든 기록을 초기화할까요?")) {
@@ -133,8 +137,6 @@
                 location.reload();
             }
         }
-
-        window.onload = loadData;
 
         function showStep(n) {
             document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden'));
@@ -147,6 +149,7 @@
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
+            
             faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
             
@@ -154,25 +157,23 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    drawConnectors(ctx, lms, FACEMESH_TESSELATION, {color: '#3182f615', lineWidth: 1});
+                    
+                    // 그물망(Face Mesh) 그리기
+                    drawConnectors(ctx, lms, FACEMESH_TESSELATION, {color: '#3182f6', lineWidth: 0.5});
+                    drawConnectors(ctx, lms, FACEMESH_RIGHT_EYE, {color: '#3182f6'});
+                    drawConnectors(ctx, lms, FACEMESH_LEFT_EYE, {color: '#3182f6'});
                     
                     const nose = lms[1];
-                    const forehead = lms[10];
                     const chin = lms[152];
-                    
-                    // 각도 계산 (민감도 보정)
                     const eyeCenter = { x: (lms[33].x + lms[263].x) / 2, y: (lms[33].y + lms[263].y) / 2 };
                     const faceDirection = nose.x - eyeCenter.x;
-                    const angleRad = Math.atan2(faceDirection, 0.2); 
+                    const angleRad = Math.atan2(faceDirection, 0.22); 
                     let currentAngle = Math.abs(Math.round(angleRad * (180 / Math.PI) * 2.1));
                     
-                    // 최소 수치 보정 (7도 -> 12도 정도로 현실화)
-                    if(currentAngle < 12) currentAngle += 5;
-
+                    if(currentAngle < 10) currentAngle += 5; 
                     finalAngle = Math.round(finalAngle * 0.8 + currentAngle * 0.2);
                     document.getElementById('angle-tag').innerText = `현재 각도: ${finalAngle}°`;
 
-                    // 카운팅 로직 (턱 위치 추가하여 머리카락 이슈 대응)
                     if (!document.getElementById('step4').classList.contains('hidden')) {
                         const midY = (nose.y + chin.y) / 2;
                         if (!isDown && midY > 0.65) isDown = true;
@@ -197,7 +198,6 @@
 
         function finalizeReport() {
             showStep(5);
-            const visitCount = parseInt(localStorage.getItem('visitCount') || '0');
             const title = document.getElementById('report-welcome-title');
             const sub = document.getElementById('report-welcome-sub');
 
@@ -209,15 +209,15 @@
                 sub.innerText = "목 정렬까지 한 걸음 더 다가갔습니다!";
             }
             
-            localStorage.setItem('visitCount', visitCount + 1);
+            visitCount++;
+            localStorage.setItem('visitCount', visitCount);
 
-            let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
             const today = new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'});
             historyData.push({ date: today, angle: finalAngle });
             if (historyData.length > 7) historyData.shift();
             localStorage.setItem('neckHistory', JSON.stringify(historyData));
             
-            setTimeout(() => renderChart(historyData), 400);
+            setTimeout(() => renderChart(historyData), 500);
 
             document.getElementById('final-angle').innerText = `${finalAngle}°`;
             const comment = document.getElementById('final-comment');
@@ -232,27 +232,28 @@
 
             if (finalAngle >= 35) {
                 comment.innerHTML = `현재 목은 <span class="text-red-600 font-bold underline">10kg 쌀 한 포대</span>를<br>짊어지고 있는 것과 같아요!`;
-                box.style.backgroundColor = "#fff1f0"; scoreDisplay.style.color = "#ff4d4f";
+                box.style.backgroundColor = "#fff1f0";
                 recom.innerText = "매일 20회 / 5세트";
-                effectDesc.innerHTML = `<p class='font-bold mb-2'>✨ 기대 효과</p><ul class='space-y-1'><li>• 신경 압박 해소로 손 저림 및 두통 완화</li><li>• 경추 디스크 퇴행 방지 및 자세 교정</li></ul>`;
-                periodInfo.innerText = "💡 8주 집중 코스: 경추 구조를 재정렬하는 시기입니다.";
+                effectDesc.innerHTML = `<ul class='space-y-2'><li>• <b>신경 압박 해소:</b> 손 저림 및 만성 두통 완화</li><li>• <b>하중 분산:</b> 경추 디스크 퇴행성 변화 방지</li></ul>`;
+                periodInfo.innerText = "💡 8주 집중 코스: 경추 구조를 정렬하는 시기입니다.";
             } else if (finalAngle >= 15) {
                 comment.innerHTML = `지금 당신의 목은 <span class="text-orange-500 font-bold underline">5kg 수박 한 통</span>의<br>무게를 견디고 있어요!`;
-                box.style.backgroundColor = "#fff7e6"; scoreDisplay.style.color = "#faad14";
+                box.style.backgroundColor = "#fff7e6";
                 recom.innerText = "매일 15회 / 3세트";
-                effectDesc.innerHTML = `<p class='font-bold mb-2'>✨ 기대 효과</p><ul class='space-y-1'><li>• 굳은 승모근 이완 및 혈류 개선</li><li>• 안구 피로 감소 및 집중력 향상</li></ul>`;
+                effectDesc.innerHTML = `<ul class='space-y-2'><li>• <b>근육 이완:</b> 굳은 승모근 및 후두하근 긴장 해소</li><li>• <b>혈류 개선:</b> 안구 피로 감소 및 집중력 향상</li></ul>`;
                 periodInfo.innerText = "💡 4주 변화 코스: 목 뒤 피로도를 낮추는 시기입니다.";
             } else {
                 comment.innerHTML = `정말 훌륭해요! 목의 무게가 <span class="text-blue-600 font-bold">깃털처럼 가볍게</span> 느껴지는 완벽한 상태입니다.`;
-                box.style.backgroundColor = "#e6f7ff"; scoreDisplay.style.color = "#1890ff";
+                box.style.backgroundColor = "#e6f7ff";
                 recom.innerText = "매일 10회 / 1세트";
-                effectDesc.innerHTML = `<p class='font-bold mb-2'>✨ 기대 효과</p><ul class='space-y-1'><li>• C자 커브 유지로 거북목 재발 차단</li><li>• 숙면 유도 및 경추 노화 예방</li></ul>`;
-                periodInfo.innerText = "💡 상시 관리 코스: 매일 1분으로 건강을 유지하세요!";
+                effectDesc.innerHTML = `<ul class='space-y-2'><li>• <b>정렬 유지:</b> C자 커브 유지로 거북목 재발 차단</li><li>• <b>컨디션 케어:</b> 숙면 유도 및 경추 노화 예방</li></ul>`;
+                periodInfo.innerText = "💡 상시 관리 코스: 매일 1분으로 건강함을 유지하세요!";
             }
         }
 
         function renderChart(data) {
-            const ctx = document.getElementById('historyChart').getContext('2d');
+            const canvas = document.getElementById('historyChart');
+            const ctx = canvas.getContext('2d');
             if (window.myChart) window.myChart.destroy();
             window.myChart = new Chart(ctx, {
                 type: 'line',
@@ -270,11 +271,10 @@
                 },
                 options: { 
                     maintainAspectRatio: false,
-                    // 애니메이션 추가하여 시각적 효과 강화
-                    animation: { duration: 1000 },
+                    responsive: true,
                     plugins: { legend: { display: false } },
                     scales: { 
-                        y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                        y: { beginAtZero: true, grid: { color: '#f5f5f5' } },
                         x: { grid: { display: false } }
                     }
                 }
