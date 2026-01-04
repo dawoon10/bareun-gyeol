@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ㅍ<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -12,17 +12,17 @@
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; letter-spacing: -0.02em; }
         .report-container { background-color: #f2f4f6; min-height: 100vh; padding: 20px; }
-        .white-card { background: white; border-radius: 32px; padding: 24px; width: 100%; margin-bottom: 16px; box-sizing: border-box; position: relative; }
+        .white-card { background: white; border-radius: 32px; padding: 24px; width: 100%; margin-bottom: 16px; box-sizing: border-box; }
         .hidden { display: none !important; }
         .btn-primary { background-color: #3182f6; color: white; border-radius: 20px; font-weight: 700; border: none; width: 100%; transition: transform 0.1s; cursor: pointer; }
         .btn-primary:active { transform: scale(0.97); }
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(25px) brightness(0.6); }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
-        .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
-        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(25deg); } }
         .count-pop { animation: countPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
         @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.6); color: #3182f6; } 100% { transform: scale(1); } }
+        .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
+        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(25deg); } }
     </style>
 </head>
 <body>
@@ -34,6 +34,7 @@
                 <button onclick="startApp('senior')" class="btn-primary py-7 text-2xl shadow-xl shadow-blue-100">큰 글씨 모드로 시작</button>
                 <button onclick="startApp('normal')" class="w-full bg-white text-[#3182f6] py-5 rounded-2xl font-bold text-lg border border-blue-100">기본 모드로 시작</button>
             </div>
+            <p class="mt-10 text-[#8b95a1] text-center font-medium italic">"가장 편안한 화면을 선택해 보세요"</p>
         </div>
 
         <div id="step2" class="hidden flex flex-col items-center p-8 pt-16">
@@ -45,7 +46,8 @@
             <button onclick="initAI()" class="btn-primary py-5 text-xl">카메라 시작</button>
         </div>
 
-        <div id="step3" class="hidden p-6">
+        <div id="step3" class="hidden p-6 text-center">
+            <p class="text-[#3182f6] font-bold mb-4">코를 렌즈 중앙에 맞춰주세요</p>
             <div id="video-container" class="mb-8 shadow-2xl">
                 <video id="video" playsinline></video><canvas id="canvas"></canvas>
                 <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-2xl">측정 중</div>
@@ -90,24 +92,23 @@
 
             <div class="white-card">
                 <h3 class="font-bold text-[#191f28] mb-4">💡 임상적 기대 효과</h3>
-                <p id="clinical-effects" class="text-[#4e5968] leading-relaxed font-medium"></p>
+                <p id="clinical-effects" class="text-[#4e5968] leading-relaxed font-medium mb-4"></p>
+                <div id="exercise-guide" class="bg-blue-50 p-4 rounded-2xl text-[#3182f6] font-bold text-sm"></div>
             </div>
 
             <div class="white-card">
-                <h3 class="font-bold text-[#191f28] mb-4">📈 개선 추이 (최근 30회)</h3>
-                <div style="height: 180px; width: 100%; position: relative;">
-                    <canvas id="historyChart"></canvas>
-                </div>
+                <h3 class="font-bold text-[#191f28] mb-1">📈 개선 추이 (최근 30회)</h3>
+                <p class="text-[#8b95a1] text-xs mb-4">매 측정 시 기록된 경추 각도의 변화 흐름입니다.</p>
+                <div style="height: 180px; width: 100%;"><canvas id="historyChart"></canvas></div>
             </div>
 
-            <button onclick="location.reload()" class="btn-primary py-6 text-xl mt-4">확인</button>
+            <button onclick="location.reload()" class="btn-primary py-6 text-xl mt-4 shadow-lg shadow-blue-100">확인</button>
         </div>
     </div>
 
     <script>
         let faceMesh; let count = 10; let currentAngle = 0; let isDown = false;
-        let audioCtx; let userMode = 'normal';
-        let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
+        let audioCtx; let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
 
         function playBeep() {
             if (!audioCtx) return;
@@ -122,7 +123,6 @@
         function showStep(n) { document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden')); document.getElementById('step' + n).classList.remove('hidden'); window.scrollTo(0,0); }
 
         function startApp(mode) {
-            userMode = mode;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             showStep(2);
         }
@@ -138,11 +138,10 @@
                     const lms = results.multiFaceLandmarks[0];
                     const nose = lms[1]; const chin = lms[152]; const forehead = lms[10];
                     
-                    // 거리 보정 로직 정밀 튜닝 (비율 기반 스케일 조정)
+                    // [거리 보정 반영] 파트너님의 요청에 따라 멀어지면 각도가 높아지고 가까우면 낮아지는 환경 대응
                     const faceSize = Math.abs(chin.y - forehead.y);
                     const nosePos = Math.abs(chin.y - nose.y);
-                    // 0.35 근처가 기본(0도)이 되도록 보정 스케일 0.38로 조정
-                    currentAngle = Math.max(0, Math.round(((nosePos / faceSize) - 0.38) * 150));
+                    currentAngle = Math.max(0, Math.round(((nosePos / faceSize) - 0.38) * 160));
 
                     document.getElementById('angle-tag').innerText = `${currentAngle}°`;
                     if (!document.getElementById('step4').classList.contains('hidden')) {
@@ -168,22 +167,24 @@
             document.getElementById('final-angle').innerText = `${currentAngle}°`;
             document.getElementById('final-kg').innerText = `${kg}kg`;
             
+            const guide = document.getElementById('exercise-guide');
             const topMsg = document.getElementById('top-msg');
             const metaphor = document.getElementById('metaphor-text');
             const warning = document.getElementById('threshold-warning');
             const effects = document.getElementById('clinical-effects');
 
-            // [로직 수정] 각도별 명확한 문구 분리
             if(currentAngle >= 15) {
                 topMsg.innerText = "오늘은 조금 더 신경 써서 스트레칭 해주세요.";
                 metaphor.innerText = "현재 고개가 앞으로 살짝 기울어져 있습니다.";
                 warning.innerText = "이는 한쪽 승모근이 단축되었을 때 나타나는 전형적인 불균형 신호입니다.";
-                effects.innerText = "경추의 정렬을 바로잡아 목과 어깨의 긴장도를 낮추고 혈류 개선을 돕습니다.";
+                effects.innerText = "경추 정렬을 통해 어깨 긴장을 완화하고 혈류 개선을 돕습니다.";
+                guide.innerText = "🎯 추천 운동: 하루 15회 / 3세트 (식후 1번씩 권장)";
             } else {
                 topMsg.innerText = "아주 훌륭한 자세를 유지하고 계시네요!";
                 metaphor.innerText = "목 정렬이 매우 안정적이며 균형이 잘 잡혀 있습니다.";
                 warning.innerText = "지금의 좋은 습관을 유지하여 척추 건강을 지켜주세요.";
-                effects.innerText = "바른 자세 유지는 집중력 향상과 만성 피로 예방에 매우 효과적입니다.";
+                effects.innerText = "바른 자세는 집중력 향상과 만성 피로 예방에 탁월합니다.";
+                guide.innerText = "🎯 유지 가이드: 하루 10회 / 1세트 (생각날 때마다)";
             }
 
             historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: currentAngle });
@@ -193,16 +194,8 @@
                 const ctx = document.getElementById('historyChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'line', 
-                    data: { 
-                        labels: historyData.map(h => h.date), 
-                        datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', backgroundColor: 'rgba(49, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 2 }] 
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } },
-                        scales: { x: { display: false }, y: { beginAtZero: true, display: true, ticks: { display: false }, grid: { display: false } } }
-                    }
+                    data: { labels: historyData.map(h => h.date), datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', backgroundColor: 'rgba(49, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { beginAtZero: true, grid: { display: false }, ticks: { display: false } } } }
                 });
             }, 100);
         }
