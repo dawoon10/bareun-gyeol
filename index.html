@@ -1,134 +1,35 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바른결 - AI Healthcare Solution</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; margin: 0; }
-        .toss-card { background: white; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .hidden { display: none !important; }
-        
-        /* [고정] 캐릭터 애니메이션 */
-        .character-box { position: relative; width: 120px; height: 150px; margin: 0 auto; }
-        .c-body { width: 60px; height: 60px; background: #3182f6; border-radius: 20px 20px 10px 10px; position: absolute; bottom: 10px; left: 30px; }
-        .c-head { 
-            width: 50px; height: 50px; background: #ffdbac; border-radius: 50%; 
-            position: absolute; bottom: 70px; left: 35px;
-            animation: moveNeck 3s infinite ease-in-out;
-        }
-        @keyframes moveNeck { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(25px, 10px) rotate(10deg); } }
-    </style>
-</head>
-<body>
+<style>
+    /* [Step 2: 분석 전 가이드] - 정적인 자세 고정 */
+    .c-head-static { 
+        width: 50px; height: 50px; background: #ffdbac; border-radius: 50%; 
+        position: absolute; bottom: 70px; left: 35px;
+        /* 움직임 없이 정면 응시 */
+    }
 
-    <div id="step1" class="min-h-screen flex flex-col items-center p-6 bg-[#f9fafb]">
-        <span class="bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-xs font-bold mb-4 mt-10">AI HEALTHCARE SOLUTION</span>
-        <h1 class="text-4xl font-black text-[#191f28] mb-4">바른결</h1>
-        <p class="text-center text-[#4e5968] mb-12">당신의 목 건강, AI가 실시간으로<br><span class="font-bold text-[#191f28]">정밀 분석하고 교정</span>해 드립니다.</p>
+    /* [Step 4: 운동 가이드] - 고개 숙이기 애니메이션 */
+    .c-head-stretch { 
+        width: 50px; height: 50px; background: #ffdbac; border-radius: 50%; 
+        position: absolute; bottom: 70px; left: 35px;
+        animation: neckStretch 4s infinite ease-in-out;
+        transform-origin: bottom center;
+    }
 
-        <div class="w-full max-w-sm space-y-4 mb-20">
-            <div class="toss-card p-6 flex items-center space-x-4">
-                <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-xl">👁️</div>
-                <div>
-                    <div class="font-bold text-[#191f28]">실시간 각도 측정</div>
-                    <div class="text-sm text-[#4e5968]">정면에서도 코와 귀의 거리를 감지합니다.</div>
-                </div>
+    @keyframes neckStretch {
+        0%, 100% { transform: rotate(0deg); } /* 정면 보기 */
+        50% { transform: rotate(45deg) translateY(10px); } /* 고개 깊숙이 숙이기 (근육 이완) */
+    }
+</style>
+
+<div id="step4" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-white text-center">
+    <h2 class="text-2xl font-bold mb-4 text-[#191f28]">목 뒤 근육을<br>시원하게 늘려주세요</h2>
+    <div class="character-box mb-8" style="transform: scale(1.2);">
+        <div class="c-body"></div>
+        <div class="c-head-stretch">
             </div>
-            <div class="toss-card p-6 flex items-center space-x-4">
-                <div class="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center text-white text-xl">📋</div>
-                <div>
-                    <div class="font-bold text-[#191f28]">성장 리포트</div>
-                    <div class="text-sm text-[#4e5968]">매일 측정되는 점수를 저장하고 분석합니다.</div>
-                </div>
-            </div>
-        </div>
-        <button onclick="showStep(2)" class="w-full max-w-sm bg-[#3182f6] text-white py-5 rounded-2xl font-bold text-xl">지금 분석 시작하기</button>
     </div>
-
-    <div id="step2" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-white text-center text-[#191f28]">
-        <h2 class="text-2xl font-bold mb-4">분석을 위해<br>카메라를 정면으로 봐주세요</h2>
-        <div class="character-box mb-8">
-            <div class="c-body"></div>
-            <div class="c-head"></div>
-        </div>
-        <p class="text-[#4e5968] mb-10">AI가 당신의 현재 목 각도를<br>정밀하게 측정합니다.</p>
-        <button onclick="startAnalysis()" class="w-full max-w-sm bg-[#3182f6] text-white py-5 rounded-2xl font-bold">확인했습니다</button>
-    </div>
-
-    <div id="step3" class="hidden min-h-screen p-6 flex flex-col items-center">
-        <div class="w-full max-w-md aspect-[3/4] bg-black rounded-3xl overflow-hidden relative mb-6">
-            <video id="video" class="w-full h-full object-cover -scale-x-1" autoplay playsinline></video>
-            <div id="status-tag" class="absolute top-6 left-6 bg-white/90 px-4 py-2 rounded-full font-bold text-blue-600">분석 중...</div>
-        </div>
-        <div id="action-card" class="hidden w-full max-w-md toss-card p-8 text-center">
-            <div id="result-preview" class="text-4xl font-black mb-4 text-red-500">주의 상태</div>
-            <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold">운동 가이드 보기</button>
-        </div>
-    </div>
-
-    <div id="step4" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-white text-center">
-        <h2 class="text-2xl font-bold mb-4">턱을 목 쪽으로<br>당겨주세요</h2>
-        <div class="character-box mb-8" style="transform: scale(1.2);">
-            <div class="c-body"></div>
-            <div class="c-head" style="animation: moveNeck 1.5s infinite alternate;"></div>
-        </div>
-        <p class="text-[#4e5968] mb-10">정수리를 위로 당긴다는 느낌으로<br>턱을 꾹 넣고 5초간 유지하세요.</p>
-        <button onclick="showReport()" class="w-full max-w-sm bg-[#3182f6] text-white py-5 rounded-2xl font-bold">운동 완료 및 리포트 보기</button>
-    </div>
-
-    <div id="step5" class="hidden min-h-screen p-6 flex flex-col items-center bg-[#f2f4f6]">
-        <div class="w-full max-w-md toss-card p-8">
-            <h2 class="text-xl font-bold text-center mb-8">오늘의 목 건강 리포트</h2>
-            <div class="text-center mb-8">
-                <div class="text-6xl font-black text-blue-600 mb-2">65점</div>
-                <div class="inline-block px-4 py-1 rounded-full bg-red-100 text-red-600 font-bold">주의</div>
-            </div>
-
-            <div class="bg-red-50 rounded-2xl p-6 mb-8 border border-red-100 text-center">
-                <p class="text-[#191f28] leading-relaxed">
-                    현재 당신의 목은 <span class="text-red-600 font-bold text-lg">10kg 정도의 쌀 한 포대</span>를 짊어지고 있는 것과 같아요! 😱
-                </p>
-                <p class="text-sm text-gray-500 mt-2">이대로 두면 목 디스크 위험이 높아집니다.</p>
-            </div>
-
-            <div class="mb-8">
-                <p class="text-sm font-bold text-gray-500 mb-4">주간 자세 변화</p>
-                <div class="flex items-end justify-between h-24 px-2 border-b-2 border-gray-100">
-                    <div class="w-6 bg-gray-200 rounded-t h-[40%]"></div>
-                    <div class="w-6 bg-gray-200 rounded-t h-[55%]"></div>
-                    <div class="w-6 bg-gray-200 rounded-t h-[45%]"></div>
-                    <div class="w-6 bg-blue-500 rounded-t h-[65%]"></div>
-                </div>
-                <div class="flex justify-between text-xs text-gray-400 mt-2">
-                    <span>3일 전</span><span>2일 전</span><span>어제</span><span>오늘</span>
-                </div>
-            </div>
-
-            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-4 rounded-2xl font-bold">내일도 측정하기</button>
-        </div>
-    </div>
-
-    <script>
-        function showStep(n) {
-            document.querySelectorAll('body > div').forEach(d => d.classList.add('hidden'));
-            document.getElementById('step' + n).classList.remove('hidden');
-        }
-
-        async function startAnalysis() {
-            showStep(3);
-            const video = document.getElementById('video');
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-            setTimeout(() => {
-                document.getElementById('status-tag').innerText = "분석 완료";
-                document.getElementById('action-card').classList.remove('hidden');
-            }, 3000);
-        }
-
-        function showReport() { showStep(5); }
-    </script>
-</body>
-</html>
+    <p class="text-[#4e5968] mb-10 leading-relaxed">
+        캐릭터처럼 고개를 아래로 천천히 숙여<br>
+        <span class="text-blue-600 font-bold">목 뒤가 늘어나는 느낌</span>에 집중하세요.
+    </p>
+    <button onclick="showReport()" class="w-full max-w-sm bg-[#3182f6] text-white py-5 rounded-2xl font-bold text-lg">운동 완료</button>
+</div>
