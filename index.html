@@ -3,59 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바른결 - AI Healthcare</title>
+    <title>바른결 - AI Clinical Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; overflow-x: hidden; }
-        .toss-card { background: white; border-radius: 28px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); width: 100%; position: relative; box-sizing: border-box; }
+        .toss-card { background: white; border-radius: 28px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); width: 100%; box-sizing: border-box; }
         .hidden { display: none !important; }
         
-        /* 분석 화면 블러 및 그물망 */
+        /* 분석 화면 효과 */
         .mirror-area { transform: scaleX(-1); position: relative; width: 100%; height: 100%; }
-        #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; border: 4px solid white; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        video { width: 100%; height: 100%; object-fit: cover; filter: blur(18px) brightness(0.6); }
+        #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; border: 4px solid white; }
+        video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
         
-        /* [중요] 카운팅 숫자 커지는 애니메이션 */
-        .count-pop { 
-            animation: countPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
-            display: inline-block;
-        }
-        @keyframes countPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.5); color: #3182f6; }
-            100% { transform: scale(1); }
-        }
-
-        .badge-safe { background-color: #e6f7ff; color: #1890ff; }
-        .badge-warning { background-color: #fff7e6; color: #faad14; }
-        .badge-danger { background-color: #fff1f0; color: #ff4d4f; }
-        .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
-        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(45deg); } }
+        /* 파란색 스캔 레이저 */
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, transparent, #3182f6, transparent); z-index: 20; animation: scan 2.5s infinite ease-in-out; }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+        /* 숫자 팝업 애니메이션 */
+        .count-pop { animation: countPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
+        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.6); color: #3182f6; } 100% { transform: scale(1); } }
+        
+        /* 캐릭터 스트레칭 애니메이션 */
+        .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
+        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(45deg); } }
     </style>
 </head>
 <body class="flex justify-center min-h-screen">
     <div class="w-full max-w-md flex flex-col p-6 gap-6">
 
         <div id="step1" class="flex flex-col items-center text-center mt-10">
-            <div class="bg-blue-100 text-[#3182f6] px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 tracking-widest uppercase">AI Clinical Analysis</div>
+            <div class="bg-blue-100 text-[#3182f6] px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 tracking-widest">AI CLINICAL</div>
             <h1 class="text-5xl font-black mb-6 tracking-tighter text-gray-900">바른결</h1>
             <p id="main-welcome-msg" class="text-gray-500 text-lg mb-12 font-medium"></p>
-            <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all mb-4">진단 시작하기</button>
-            <button onclick="resetAllData()" class="text-gray-400 text-sm underline opacity-50 hover:opacity-100 transition-opacity">데이터 초기화</button>
+            <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all">진단 시작하기</button>
         </div>
 
         <div id="step2" class="hidden flex flex-col items-center text-center mt-20">
             <h2 class="text-3xl font-bold mb-10 leading-tight">정면을 바라보면<br>분석이 시작됩니다</h2>
             <div class="w-24 h-32 relative mb-16 scale-125">
-                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto relative z-10 shadow-sm"></div>
+                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto relative z-10"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-80"></div>
             </div>
             <button onclick="initAI()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg">카메라 활성화</button>
@@ -68,10 +59,10 @@
                     <video id="video" playsinline></video>
                     <canvas id="canvas"></canvas>
                 </div>
-                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20">정밀 분석 중...</div>
+                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20 text-sm">준비 중...</div>
             </div>
             <div id="analysis-finish" class="hidden w-full text-center">
-                <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold shadow-lg">교정 운동 시작</button>
+                <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold">교정 운동 시작</button>
             </div>
         </div>
 
@@ -83,120 +74,111 @@
             </div>
             <div class="toss-card text-center border border-gray-100">
                 <div id="count-number" class="text-8xl font-black text-gray-900">10</div>
-                <p class="text-gray-400 mt-4 font-bold tracking-widest uppercase">Remaining</p>
+                <p class="text-gray-400 mt-4 font-bold tracking-widest uppercase">Count</p>
             </div>
         </div>
 
         <div id="step5" class="hidden flex flex-col gap-6 pb-20">
             <div class="text-center py-4">
-                <h2 id="report-welcome-title" class="text-2xl font-bold">분석 리포트</h2>
-                <p id="report-welcome-sub" class="text-blue-600 font-bold mt-1"></p>
+                <h2 class="text-2xl font-bold text-gray-900">정밀 분석 리포트</h2>
+                <p id="report-welcome-sub" class="text-blue-600 font-bold mt-1 text-sm"></p>
             </div>
 
-            <div class="toss-card border border-gray-100 p-4">
-                <h3 class="text-xs font-bold text-gray-400 mb-3 ml-1">거북목 단계별 기준</h3>
-                <div class="flex gap-1 text-[11px] font-bold text-center">
-                    <div class="flex-1 py-2 rounded-lg bg-blue-50 text-blue-600">정상<br>0°~15°</div>
-                    <div class="flex-1 py-2 rounded-lg bg-orange-50 text-orange-600">주의<br>15°~35°</div>
-                    <div class="flex-1 py-2 rounded-lg bg-red-50 text-red-600">위험<br>35° 이상</div>
+            <div class="toss-card border border-gray-100">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-50 p-4 rounded-2xl text-center">
+                        <p class="text-[10px] font-bold text-gray-400 mb-1">운동 점수</p>
+                        <p id="final-score" class="text-2xl font-black text-gray-900"></p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl text-center">
+                        <p class="text-[10px] font-bold text-gray-400 mb-1">현재 각도</p>
+                        <p id="final-angle" class="text-2xl font-black text-blue-600"></p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="toss-card text-center border border-gray-100">
-                <div class="flex justify-between items-start mb-6 px-2">
-                    <div class="text-left">
-                        <p class="text-gray-400 text-xs font-bold mb-1">나의 각도</p>
-                        <div class="flex items-center gap-2">
-                            <p id="final-angle" class="text-3xl font-black text-gray-900">0°</p>
-                            <span id="angle-status-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold">분석중</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-gray-400 text-xs font-bold mb-1">건강 점수</p>
-                        <p id="final-score" class="text-3xl font-black text-gray-900">0점</p>
-                    </div>
+                <div id="comment-box" class="p-5 rounded-2xl border border-blue-50 bg-blue-50/50 mb-4">
+                    <p id="load-visual" class="text-red-500 font-bold text-sm mb-2 text-center"></p>
+                    <p id="final-comment" class="text-sm font-medium leading-relaxed text-center text-gray-700"></p>
                 </div>
-                <div id="comment-box" class="p-8 rounded-[32px] font-medium leading-relaxed mb-4">
-                    <p id="final-comment" class="text-lg"></p>
-                </div>
-                <div class="bg-blue-50 p-5 rounded-2xl text-left border border-blue-100">
-                    <p id="period-info" class="text-sm font-semibold leading-relaxed"></p>
+
+                <div class="bg-gray-900 p-5 rounded-2xl text-white mb-4">
+                    <p id="recom-text" class="text-sm font-bold text-center"></p>
                 </div>
             </div>
 
             <div class="toss-card border border-gray-100">
-                <h3 class="font-bold text-gray-900 mb-5 flex items-center gap-2">💡 AI 맞춤 솔루션</h3>
-                <div class="space-y-6">
-                    <div class="flex justify-between items-center bg-gray-50 p-4 rounded-2xl">
-                        <span class="text-gray-500 font-medium text-sm">추천 루틴</span>
-                        <span id="recom-text" class="font-bold text-[#3182f6]"></span>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-800 mb-3 text-sm">✨ 정기 운동 시 기대 효과</p>
-                        <div id="effect-description" class="text-gray-600 font-medium text-sm leading-relaxed space-y-3"></div>
-                    </div>
-                </div>
+                <h3 class="font-bold text-gray-900 mb-4 text-sm">💡 임상적 기대 효과</h3>
+                <div id="effect-description" class="text-gray-600 font-medium text-xs leading-relaxed space-y-3"></div>
             </div>
 
             <div class="toss-card border border-gray-100">
-                <h3 class="font-bold text-gray-900 mb-4">📈 나의 개선 추이 (최근 30회)</h3>
-                <div class="w-full h-[200px] relative">
+                <h3 class="font-bold text-gray-900 mb-4 text-sm">📈 개선 기록</h3>
+                <div class="w-full h-[180px]">
                     <canvas id="historyChart"></canvas>
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-[24px] font-bold text-lg shadow-lg">다시 측정하기</button>
+            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-[24px] font-bold text-lg shadow-xl">홈으로 돌아가기</button>
         </div>
     </div>
 
     <script>
         let faceMesh; let count = 10; let finalAngle = 0; let isDown = false;
+        let skewValue = 0; 
         let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
         let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
 
+        // 비프음 생성 함수
+        function playBeep() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
+
         window.onload = () => {
-            const welcome = document.getElementById('main-welcome-msg');
-            welcome.innerHTML = visitCount === 0 
-                ? "당신의 첫 측정을 환영해요!<br><span class='text-gray-900 font-bold'>3D 정밀 분석</span>으로 시작해볼까요?"
-                : "다시 만나서 반가워요!<br><span class='text-gray-900 font-bold'>더 가벼운 목</span>을 만들어봐요.";
+            document.getElementById('main-welcome-msg').innerHTML = visitCount === 0 
+                ? "첫 방문을 환영합니다.<br>AI로 당신의 <b>목 정렬 상태</b>를 체크하세요."
+                : "반가워요! 오늘은 어제보다<br><b>얼마나 더 가벼운지</b> 확인해볼까요?";
         };
 
-        function resetAllData() {
-            if(confirm("모든 기록을 초기화할까요?")) { localStorage.clear(); location.reload(); }
-        }
-
-        function showStep(n) {
-            document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden'));
-            document.getElementById('step' + n).classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
+        function resetAllData() { if(confirm("초기화할까요?")) { localStorage.clear(); location.reload(); } }
+        function showStep(n) { document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden')); document.getElementById('step' + n).classList.remove('hidden'); window.scrollTo(0,0); }
 
         async function initAI() {
             showStep(3);
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
+            const video = document.getElementById('video'); const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
             faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
             faceMesh.onResults((results) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    ctx.fillStyle = "rgba(49, 130, 246, 0.7)";
-                    for(let i=0; i<lms.length; i+=12) { 
+                    // 그물망 시각화
+                    ctx.strokeStyle = "rgba(49, 130, 246, 0.4)"; ctx.lineWidth = 0.5;
+                    for(let i=0; i<lms.length; i+=5) { 
                         const x = lms[i].x * canvas.width; const y = lms[i].y * canvas.height;
-                        ctx.beginPath(); ctx.arc(x, y, 1.2, 0, 2 * Math.PI); ctx.fill();
+                        ctx.beginPath(); ctx.arc(x, y, 1, 0, 2 * Math.PI); ctx.stroke();
                     }
-                    const nose = lms[1]; const chin = lms[152];
-                    const faceDirection = nose.x - ((lms[33].x + lms[263].x) / 2);
+                    const nose = lms[1]; const leftEye = lms[33]; const rightEye = lms[263];
+                    const faceDirection = nose.x - ((leftEye.x + rightEye.x) / 2);
                     let cur = Math.abs(Math.round(Math.atan2(faceDirection, 0.22) * (180 / Math.PI) * 2.3));
                     if(cur < 12) cur += 5; 
                     finalAngle = Math.round(finalAngle * 0.8 + cur * 0.2);
-                    document.getElementById('angle-tag').innerText = `현재 각도: ${finalAngle}°`;
+                    skewValue = (leftEye.y - rightEye.y) * 100;
+
+                    document.getElementById('angle-tag').innerText = `정밀 분석 완료: ${finalAngle}°`;
+                    
                     if (!document.getElementById('step4').classList.contains('hidden')) {
-                        const midY = (nose.y + chin.y) / 2;
-                        if (!isDown && midY > 0.64) isDown = true;
-                        else if (isDown && midY < 0.52) { isDown = false; updateCount(); }
+                        const midY = (nose.y + lms[152].y) / 2;
+                        if (!isDown && midY > 0.65) isDown = true;
+                        else if (isDown && midY < 0.55) { isDown = false; updateCount(); }
                     }
                 }
             });
@@ -206,92 +188,67 @@
         }
 
         function updateCount() {
-            count--;
-            // [추가] 진동 기능: 50ms 짧게 진동 (지원되는 기기 및 브라우저에서 작동)
-            if (navigator.vibrate) { navigator.vibrate(50); }
+            count--; 
+            if (navigator.vibrate) navigator.vibrate(80); // 진동
+            playBeep(); // 사운드
             
             const el = document.getElementById('count-number');
-            el.innerText = count;
-            el.classList.remove('count-pop');
-            void el.offsetWidth; 
-            el.classList.add('count-pop');
+            el.innerText = count; 
+            el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop');
             
-            if (count <= 0) setTimeout(finalizeReport, 800);
+            if (count <= 0) {
+                alert("축하합니다! 오늘의 노력이 당신의 목을 1cm 더 세웠습니다!");
+                finalizeReport();
+            }
         }
 
         function finalizeReport() {
             showStep(5);
-            const title = document.getElementById('report-welcome-title');
-            const sub = document.getElementById('report-welcome-sub');
-            const badge = document.getElementById('angle-status-badge');
-            
-            const lastRecord = historyData.length > 0 ? historyData[historyData.length - 1].angle : null;
-            if (!lastRecord) {
-                title.innerText = "진단 완료! ✨"; sub.innerText = "바른 목 습관의 첫걸음을 뗐어요.";
-            } else {
-                const diff = lastRecord - finalAngle;
-                if (diff > 2) { title.innerText = "놀라운 변화네요! 👏"; sub.innerText = `지난번보다 목이 ${diff}° 더 세워졌어요.`; }
-                else if (diff < -2) { title.innerText = "조금만 더 힘내볼까요? 💪"; sub.innerText = "오늘은 목이 조금 무거워 보여요."; }
-                else { title.innerText = "잘 유지하고 있어요! ✅"; sub.innerText = "바른 정렬 상태를 안정적으로 지키는 중입니다."; }
-            }
-            
-            historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: finalAngle });
-            if (historyData.length > 30) historyData.shift();
-            localStorage.setItem('neckHistory', JSON.stringify(historyData));
-            visitCount++; localStorage.setItem('visitCount', visitCount);
-            
-            setTimeout(() => renderChart(historyData), 400);
-
-            const comment = document.getElementById('final-comment');
-            const box = document.getElementById('comment-box');
-            const periodInfo = document.getElementById('period-info');
-            const effectDesc = document.getElementById('effect-description');
-            const recom = document.getElementById('recom-text');
+            const score = Math.max(0, 100 - (finalAngle * 1.5));
             document.getElementById('final-angle').innerText = `${finalAngle}°`;
-            document.getElementById('final-score').innerText = `${Math.round(Math.max(0, 100 - (finalAngle * 1.5)))}점`;
+            document.getElementById('final-score').innerText = `${Math.round(score)}점`;
+
+            const visual = document.getElementById('load-visual');
+            const comment = document.getElementById('final-comment');
+            const recom = document.getElementById('recom-text');
+            const effects = document.getElementById('effect-description');
 
             if (finalAngle >= 35) {
-                badge.innerText = "위험"; badge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold badge-danger";
-                comment.innerHTML = `현재 목은 <span class="text-red-600 font-bold underline">10kg 쌀 한 포대</span>를<br>짊어지고 있는 것과 같아요!`;
-                box.style.backgroundColor = "#fff1f0"; recom.innerText = "매일 20회 / 5세트";
-                periodInfo.innerHTML = "📅 <span class='text-red-600 font-bold'>예상 교정 기간: 8~12주</span><br>경추 구조를 근본적으로 재정렬하는 시기입니다.";
-                effectDesc.innerHTML = `<p>• <b>신경 압박 해소:</b> 만성 두통과 손 저림을 차단합니다.</p><p>• <b>디스크 보호:</b> 하중을 분산시켜 퇴행성 변화를 방지합니다.</p><p>• <b>전신 정렬:</b> 어깨와 등 라인까지 곧게 펴줍니다.</p>`;
+                visual.innerText = "🚨 쌀 한 가마니(27kg)를 얹고 있는 상태!";
+                comment.innerText = "경추의 C커브가 완전히 무너졌습니다. 이대로 방치하면 디스크 퇴행이 급격히 진행될 수 있습니다.";
+                recom.innerText = "⚠️ 추천: 15회씩 5세트 (매일 3회)";
+                effects.innerHTML = "<p>• 신경 압박 해소로 만성 두통 완화</p><p>• 어깨 근육 유착 방지 및 통증 감소</p>";
             } else if (finalAngle >= 15) {
-                badge.innerText = "주의"; badge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold badge-warning";
-                comment.innerHTML = `지금 당신의 목은 <span class="text-orange-500 font-bold underline">5kg 수박 한 통</span>의<br>무게를 견디고 있어요!`;
-                box.style.backgroundColor = "#fff7e6"; recom.innerText = "매일 15회 / 3세트";
-                periodInfo.innerHTML = "📅 <span class='text-orange-600 font-bold'>예상 교정 기간: 4~6주</span><br>습관을 정착시키고 유연성을 회복하는 시기입니다.";
-                effectDesc.innerHTML = `<p>• <b>피로 회복:</b> 승모근 긴장을 해소하여 머리가 가벼워집니다.</p><p>• <b>혈류 개선:</b> 집중력을 높이고 눈의 피로를 낮춥니다.</p><p>• <b>호흡 안정:</b> 구부정한 자세를 교정하여 폐활량을 돕습니다.</p>`;
+                visual.innerText = "⚠️ 수박 한 통(12kg)을 얹고 있는 상태!";
+                comment.innerText = "전형적인 거북목 초기 단계입니다. 목 뒤 근육이 항상 긴장되어 있어 쉽게 피로를 느낍니다.";
+                recom.innerText = "✅ 추천: 10회씩 3세트 (매일 2회)";
+                effects.innerHTML = "<p>• 승모근 긴장 완화 및 안구 건조증 개선</p><p>• 혈류 개선을 통한 집중력 향상</p>";
             } else {
-                badge.innerText = "정상"; badge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold badge-safe";
-                comment.innerHTML = `정말 훌륭해요! 목의 무게가 <span class="text-blue-600 font-bold">깃털처럼 가볍게</span> 느껴지는 완벽한 상태입니다.`;
-                box.style.backgroundColor = "#e6f7ff"; recom.innerText = "매일 10회 / 1세트";
-                periodInfo.innerHTML = "📅 <span class='text-blue-600 font-bold'>유지 관리 기간: 상시</span><br>지금의 건강함을 지키기 위해 하루 1분만 투자하세요.";
-                effectDesc.innerHTML = `<p>• <b>C자 커브 보존:</b> 외부 충격을 흡수하는 곡선을 유지합니다.</p><p>• <b>안티에이징:</b> 목 주름과 경추 노화 속도를 늦춰줍니다.</p><p>• <b>컨디션 케어:</b> 숙면과 활기찬 일상을 유지하도록 돕습니다.</p>`;
+                visual.innerText = "✨ 가벼운 가방(5kg) 하나 메고 있는 상태!";
+                comment.innerText = "매우 건강한 정렬입니다. 지금의 바른 자세를 유지하기 위해 스트레칭을 생활화하세요.";
+                recom.innerText = "👍 추천: 10회씩 1세트 (유지 관리)";
+                effects.innerHTML = "<p>• 척추 노화 방지 및 올바른 호흡 확보</p><p>• 최상의 컨디션과 바른 인상 유지</p>";
             }
+
+            historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: finalAngle });
+            localStorage.setItem('neckHistory', JSON.stringify(historyData));
+            visitCount++; localStorage.setItem('visitCount', visitCount);
+            setTimeout(() => renderChart(historyData), 400);
         }
 
         function renderChart(data) {
             const ctx = document.getElementById('historyChart').getContext('2d');
-            if (window.myChart) window.myChart.destroy();
-            window.myChart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(h => h.date),
                     datasets: [{
                         data: data.map(h => h.angle),
-                        borderColor: '#3182f6', backgroundColor: 'rgba(49, 130, 246, 0.08)',
-                        borderWidth: 2.5, pointRadius: data.length > 15 ? 2 : 4, tension: 0.3, fill: true
+                        borderColor: '#3182f6', backgroundColor: 'rgba(49, 130, 246, 0.1)',
+                        borderWidth: 3, tension: 0.3, fill: true
                     }]
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: '#f0f0f0', drawBorder: false } },
-                        x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 7 } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
     </script>
