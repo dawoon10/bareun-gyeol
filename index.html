@@ -29,8 +29,9 @@
         <div id="step1" class="flex flex-col items-center text-center mt-10">
             <div class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold mb-6">AI HEALTHCARE</div>
             <h1 class="text-5xl font-black mb-6 tracking-tight">바른결</h1>
-            <p id="main-welcome-msg" class="text-gray-500 text-lg mb-12 font-medium"></p>
-            <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all">진단 시작하기</button>
+            <p id="main-welcome-msg" class="text-gray-500 text-lg mb-12 font-medium">로딩 중...</p>
+            <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all mb-4">진단 시작하기</button>
+            <button onclick="resetAllData()" class="text-gray-400 text-sm underline opacity-50 hover:opacity-100 transition-opacity">데이터 초기화 (테스트용)</button>
         </div>
 
         <div id="step2" class="hidden flex flex-col items-center text-center mt-20">
@@ -75,11 +76,11 @@
             <div class="toss-card text-center border border-gray-50">
                 <div class="flex justify-between items-start mb-6 px-2">
                     <div class="text-left">
-                        <p class="text-gray-400 text-[10px] font-bold mb-1 tracking-tight">현재 각도</p>
+                        <p class="text-gray-400 text-xs font-bold mb-1">나의 각도</p>
                         <p id="final-angle" class="text-3xl font-black text-gray-900">0°</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-gray-400 text-[10px] font-bold mb-1 tracking-tight">AI 건강점수</p>
+                        <p class="text-gray-400 text-xs font-bold mb-1">건강 점수</p>
                         <p id="final-score" class="text-3xl font-black">0점</p>
                     </div>
                 </div>
@@ -113,15 +114,29 @@
 
     <script>
         let faceMesh; let count = 10; let finalAngle = 0; let isDown = false;
-        let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
-        let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
-
-        window.onload = () => {
+        
+        // 데이터 로드
+        function loadData() {
+            const visitCount = parseInt(localStorage.getItem('visitCount') || '0');
             const welcome = document.getElementById('main-welcome-msg');
-            welcome.innerHTML = visitCount === 0 
-                ? "당신의 첫 측정을 환영해요!<br><span class='text-gray-900 font-bold'>3D 정밀 분석</span>으로 시작해볼까요?"
-                : "다시 만나서 반가워요!<br><span class='text-gray-900 font-bold'>더 가벼운 목</span>을 만들어봐요.";
-        };
+            if (visitCount === 0) {
+                welcome.innerHTML = "당신의 첫 측정을 환영해요!<br><span class='text-gray-900 font-bold'>3D 정밀 분석</span>으로 시작해볼까요?";
+            } else {
+                welcome.innerHTML = "다시 만나서 반가워요!<br><span class='text-gray-900 font-bold'>더 가벼운 목</span>을 만들어봐요.";
+            }
+        }
+
+        // 전체 초기화 함수
+        function resetAllData() {
+            if(confirm("모든 방문 기록과 측정 히스토리를 초기화하시겠습니까?")) {
+                localStorage.removeItem('visitCount');
+                localStorage.removeItem('neckHistory');
+                alert("데이터가 초기화되었습니다. 첫 방문 상태로 다시 시작합니다.");
+                location.reload();
+            }
+        }
+
+        window.onload = loadData;
 
         function showStep(n) {
             document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden'));
@@ -134,35 +149,26 @@
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
-
             faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.6 });
-            
             faceMesh.onResults((results) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    drawConnectors(ctx, lms, FACEMESH_TESSELATION, {color: '#3182f620', lineWidth: 1});
-                    
                     const nose = lms[1];
                     const eyeCenter = { x: (lms[33].x + lms[263].x) / 2, y: (lms[33].y + lms[263].y) / 2 };
                     const faceDirection = nose.x - eyeCenter.x;
-                    
-                    // 각도 보정: 정면 감도 조정 및 최소 보정치 적용
                     const angleRad = Math.atan2(faceDirection, 0.22); 
                     let currentAngle = Math.abs(Math.round(angleRad * (180 / Math.PI) * 1.6));
-                    if(currentAngle < 5) currentAngle = 5; // 너무 낮은 수치(2도 등) 보정
-
+                    if(currentAngle < 5) currentAngle = 5; 
                     finalAngle = Math.round(finalAngle * 0.8 + currentAngle * 0.2);
                     document.getElementById('angle-tag').innerText = `현재 각도: ${finalAngle}°`;
-
                     if (!document.getElementById('step4').classList.contains('hidden')) {
                         if (!isDown && nose.y > 0.63) isDown = true;
                         else if (isDown && nose.y < 0.48) { isDown = false; updateCount(); }
                     }
                 }
             });
-
             const camera = new Camera(video, { onFrame: async () => { await faceMesh.send({image: video}); }, width: 640, height: 480 });
             camera.start();
             setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 4500);
@@ -179,6 +185,7 @@
 
         function finalizeReport() {
             showStep(5);
+            const visitCount = parseInt(localStorage.getItem('visitCount') || '0');
             const title = document.getElementById('report-welcome-title');
             const sub = document.getElementById('report-welcome-sub');
 
@@ -190,17 +197,15 @@
                 sub.innerText = "목 정렬까지 한 걸음 더 다가갔습니다!";
             }
             
-            visitCount++;
-            localStorage.setItem('visitCount', visitCount);
+            localStorage.setItem('visitCount', visitCount + 1);
 
-            // 데이터 저장 및 차트 갱신
+            let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
             const today = new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'});
             historyData.push({ date: today, angle: finalAngle });
             if (historyData.length > 7) historyData.shift();
             localStorage.setItem('neckHistory', JSON.stringify(historyData));
             
-            // 차트 렌더링 지연 실행 (캔버스 준비 보장)
-            setTimeout(renderChart, 300);
+            setTimeout(() => renderChart(historyData), 300);
 
             document.getElementById('final-angle').innerText = `${finalAngle}°`;
             const comment = document.getElementById('final-comment');
@@ -234,26 +239,19 @@
             }
         }
 
-        function renderChart() {
-            const canvas = document.getElementById('historyChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            
-            // 기존 차트 객체 파괴 (중복 렌더링 방지)
+        function renderChart(data) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
             if (window.myChart) window.myChart.destroy();
-
             window.myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: historyData.map(h => h.date),
+                    labels: data.map(h => h.date),
                     datasets: [{
-                        data: historyData.map(h => h.angle),
+                        data: data.map(h => h.angle),
                         borderColor: '#3182f6',
                         backgroundColor: '#3182f615',
                         borderWidth: 3,
                         pointRadius: 5,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#3182f6',
                         tension: 0.4,
                         fill: true
                     }]
@@ -262,7 +260,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { 
-                        y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { stepSize: 10 } },
+                        y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
                         x: { grid: { display: false } }
                     }
                 }
