@@ -15,26 +15,18 @@
         .toss-card { background: white; border-radius: 28px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); width: 100%; position: relative; box-sizing: border-box; }
         .hidden { display: none !important; }
         
-        /* 분석 화면: 블러 및 미러링 */
+        /* 분석 화면 스타일 */
         .mirror-area { transform: scaleX(-1); position: relative; width: 100%; height: 100%; }
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; border: 4px solid white; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(18px) brightness(0.6); }
         canvas#canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
         
-        /* 카운팅 숫자 애니메이션 */
+        /* 애니메이션 및 특수 효과 */
         .count-pop { animation: countPop 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); display: inline-block; }
-        @keyframes countPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.4); color: #3182f6; }
-            100% { transform: scale(1); }
-        }
-
-        /* 그래프 반전 방지 */
+        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.4); color: #3182f6; } 100% { transform: scale(1); } }
         #historyChart { transform: none !important; width: 100% !important; height: 100% !important; }
-
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, transparent, #3182f6, transparent); z-index: 20; animation: scan 2.5s infinite ease-in-out; }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
-        
         .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
         @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(45deg); } }
     </style>
@@ -87,15 +79,18 @@
 
         <div id="step5" class="hidden flex flex-col gap-6 pb-20">
             <div class="text-center py-4">
-                <h2 id="report-welcome-title" class="text-2xl font-bold"></h2>
-                <p id="report-welcome-sub" class="text-blue-600 font-bold mt-1"></p>
+                <h2 id="report-welcome-title" class="text-2xl font-bold">진단 완료</h2>
+                <p id="report-welcome-sub" class="text-blue-600 font-bold mt-1">실시간 데이터 분석 결과입니다.</p>
             </div>
 
             <div class="toss-card text-center border border-gray-100">
                 <div class="flex justify-between items-start mb-6 px-2">
                     <div class="text-left">
                         <p class="text-gray-400 text-xs font-bold mb-1">나의 각도</p>
-                        <p id="final-angle" class="text-3xl font-black text-gray-900">0°</p>
+                        <div class="flex items-baseline gap-2">
+                            <p id="final-angle" class="text-3xl font-black text-gray-900">0°</p>
+                            <span id="angle-status-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold">분석중</span>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p class="text-gray-400 text-xs font-bold mb-1">건강 점수</p>
@@ -165,32 +160,23 @@
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
-            
             faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
-            
             faceMesh.onResults((results) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    
-                    // 네온 도트 그물망 시각화
                     ctx.fillStyle = "rgba(49, 130, 246, 0.7)";
                     for(let i=0; i<lms.length; i+=12) { 
-                        const x = lms[i].x * canvas.width;
-                        const y = lms[i].y * canvas.height;
+                        const x = lms[i].x * canvas.width; const y = lms[i].y * canvas.height;
                         ctx.beginPath(); ctx.arc(x, y, 1.2, 0, 2 * Math.PI); ctx.fill();
                     }
-                    drawConnectors(ctx, lms, FACEMESH_TESSELATION, {color: '#3182f620', lineWidth: 0.5});
-                    
-                    const nose = lms[1];
-                    const chin = lms[152];
+                    const nose = lms[1]; const chin = lms[152];
                     const faceDirection = nose.x - ((lms[33].x + lms[263].x) / 2);
                     let currentAngle = Math.abs(Math.round(Math.atan2(faceDirection, 0.22) * (180 / Math.PI) * 2.3));
                     if(currentAngle < 12) currentAngle += 5; 
                     finalAngle = Math.round(finalAngle * 0.8 + currentAngle * 0.2);
                     document.getElementById('angle-tag').innerText = `현재 각도: ${finalAngle}°`;
-
                     if (!document.getElementById('step4').classList.contains('hidden')) {
                         const midY = (nose.y + chin.y) / 2;
                         if (!isDown && midY > 0.64) isDown = true;
@@ -198,19 +184,14 @@
                     }
                 }
             });
-
             const camera = new Camera(video, { onFrame: async () => { await faceMesh.send({image: video}); }, width: 640, height: 480 });
             camera.start();
             setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 4000);
         }
 
         function updateCount() {
-            count--;
-            const el = document.getElementById('count-number');
-            el.innerText = count;
-            el.classList.remove('count-pop');
-            void el.offsetWidth; 
-            el.classList.add('count-pop');
+            count--; const el = document.getElementById('count-number');
+            el.innerText = count; el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop');
             if (count <= 0) setTimeout(finalizeReport, 800);
         }
 
@@ -218,48 +199,62 @@
             showStep(5);
             const title = document.getElementById('report-welcome-title');
             const sub = document.getElementById('report-welcome-sub');
-            title.innerText = visitCount === 0 ? "첫 측정을 완료했어요! ✨" : "축하합니다! 🎉";
-            sub.innerText = visitCount === 0 ? "바른 목 습관의 시작입니다." : "정렬 상태가 점점 좋아지고 있어요!";
+            const badge = document.getElementById('angle-status-badge');
             
-            visitCount++;
-            localStorage.setItem('visitCount', visitCount);
-
-            const today = new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'});
-            historyData.push({ date: today, angle: finalAngle });
-            if (historyData.length > 30) historyData.shift(); // 30회까지 확장
+            // 데이터 비교 로직
+            const lastRecord = historyData.length > 0 ? historyData[historyData.length - 1].angle : null;
+            
+            if (!lastRecord) {
+                title.innerText = "첫 측정을 완료했어요! ✨";
+                sub.innerText = "바른 목 습관의 시작입니다.";
+            } else {
+                const diff = lastRecord - finalAngle;
+                if (diff > 2) {
+                    title.innerText = "놀라운 변화네요! 👏";
+                    sub.innerText = `지난번보다 목이 ${diff}°나 더 펴졌어요.`;
+                } else if (diff < -2) {
+                    title.innerText = "조금만 더 힘내볼까요? 💪";
+                    sub.innerText = "오늘은 평소보다 목이 조금 숙여져 있어요.";
+                } else {
+                    title.innerText = "안정적으로 유지 중이에요! ✅";
+                    sub.innerText = "바른 정렬 상태를 아주 잘 지키고 계시네요.";
+                }
+            }
+            
+            historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: finalAngle });
+            if (historyData.length > 30) historyData.shift();
             localStorage.setItem('neckHistory', JSON.stringify(historyData));
+            visitCount++; localStorage.setItem('visitCount', visitCount);
             
             setTimeout(() => renderChart(historyData), 400);
 
             const comment = document.getElementById('final-comment');
             const box = document.getElementById('comment-box');
-            const scoreDisplay = document.getElementById('final-score');
             const periodInfo = document.getElementById('period-info');
             const effectDesc = document.getElementById('effect-description');
             const recom = document.getElementById('recom-text');
-            
             document.getElementById('final-angle').innerText = `${finalAngle}°`;
-            let score = Math.max(0, 100 - (finalAngle * 1.5));
-            scoreDisplay.innerText = `${Math.round(score)}점`;
+            document.getElementById('final-score').innerText = `${Math.round(Math.max(0, 100 - (finalAngle * 1.5)))}점`;
 
+            // 거북목 범위 및 상태 설정
             if (finalAngle >= 35) {
+                badge.innerText = "위험"; badge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-100 text-red-600";
                 comment.innerHTML = `현재 목은 <span class="text-red-600 font-bold underline">10kg 쌀 한 포대</span>를<br>짊어지고 있는 것과 같아요!`;
-                box.style.backgroundColor = "#fff1f0";
-                recom.innerText = "매일 20회 / 5세트";
-                effectDesc.innerHTML = `<ul class='space-y-1'><li>• 신경 압박 해소: 손 저림 완화</li><li>• 하중 분산: 디스크 퇴행 방지</li></ul>`;
-                periodInfo.innerHTML = "📅 <span class='text-red-600 font-bold'>예상 교정 기간: 8~12주</span><br>기초 근력 형성과 경추 재정렬이 시급한 단계입니다.";
+                box.style.backgroundColor = "#fff1f0"; recom.innerText = "매일 20회 / 5세트";
+                effectDesc.innerHTML = "• 신경 압박 해소 및 디스크 퇴행 방지";
+                periodInfo.innerHTML = "📅 <span class='text-red-600 font-bold'>예상 교정 기간: 8~12주</span><br>경추 재정렬이 시급한 단계입니다.";
             } else if (finalAngle >= 15) {
+                badge.innerText = "주의"; badge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-orange-600";
                 comment.innerHTML = `지금 당신의 목은 <span class="text-orange-500 font-bold underline">5kg 수박 한 통</span>의<br>무게를 견디고 있어요!`;
-                box.style.backgroundColor = "#fff7e6";
-                recom.innerText = "매일 15회 / 3세트";
-                effectDesc.innerHTML = `<ul class='space-y-1'><li>• 근육 이완: 승모근 긴장 해소</li><li>• 혈류 개선: 집중력 향상</li></ul>`;
-                periodInfo.innerHTML = "📅 <span class='text-orange-600 font-bold'>예상 교정 기간: 4~6주</span><br>근육 유연성을 회복하고 습관을 고치는 시기입니다.";
+                box.style.backgroundColor = "#fff7e6"; recom.innerText = "매일 15회 / 3세트";
+                effectDesc.innerHTML = "• 근육 이완 및 혈류 개선을 통한 피로 감소";
+                periodInfo.innerHTML = "📅 <span class='text-orange-600 font-bold'>예상 교정 기간: 4~6주</span><br>정렬을 습관화하는 시기입니다.";
             } else {
+                badge.innerText = "정상"; badge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-600";
                 comment.innerHTML = `정말 훌륭해요! 목의 무게가 <span class="text-blue-600 font-bold">깃털처럼 가볍게</span> 느껴지는 완벽한 상태입니다.`;
-                box.style.backgroundColor = "#e6f7ff";
-                recom.innerText = "매일 10회 / 1세트";
-                effectDesc.innerHTML = `<ul class='space-y-1'><li>• 정렬 유지: C자 커브 유지</li><li>• 컨디션 케어: 경추 노화 예방</li></ul>`;
-                periodInfo.innerHTML = "📅 <span class='text-blue-600 font-bold'>유지 관리 기간: 상시</span><br>지금의 건강함을 유지하기 위해 하루 1분만 투자하세요.";
+                box.style.backgroundColor = "#e6f7ff"; recom.innerText = "매일 10회 / 1세트";
+                effectDesc.innerHTML = "• 건강한 C자 커브 유지 및 노화 예방";
+                periodInfo.innerHTML = "📅 <span class='text-blue-600 font-bold'>유지 관리 기간: 상시</span><br>지금처럼 하루 1분만 투자하세요.";
             }
         }
 
@@ -272,17 +267,12 @@
                     labels: data.map(h => h.date),
                     datasets: [{
                         data: data.map(h => h.angle),
-                        borderColor: '#3182f6',
-                        backgroundColor: 'rgba(49, 130, 246, 0.08)',
-                        borderWidth: 2.5,
-                        pointRadius: data.length > 15 ? 2 : 4,
-                        tension: 0.3,
-                        fill: true
+                        borderColor: '#3182f6', backgroundColor: 'rgba(49, 130, 246, 0.08)',
+                        borderWidth: 2.5, pointRadius: data.length > 15 ? 2 : 4, tension: 0.3, fill: true
                     }]
                 },
                 options: { 
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: { 
                         y: { beginAtZero: true, grid: { color: '#f0f0f0', drawBorder: false } },
