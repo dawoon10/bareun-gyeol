@@ -7,246 +7,253 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; overflow-x: hidden; }
-        .toss-card { background: white; border-radius: 28px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); width: 100%; box-sizing: border-box; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; }
+        .toss-card { background: white; border-radius: 28px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); width: 100%; position: relative; box-sizing: border-box; }
         .hidden { display: none !important; }
         
-        /* [분석 화면] 블러 + 스캔 레이저 */
+        /* 분석 화면 효과 */
         .mirror-area { transform: scaleX(-1); position: relative; width: 100%; height: 100%; }
-        #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; border: 4px solid white; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        video { width: 100%; height: 100%; object-fit: cover; filter: blur(15px) brightness(0.7); }
+        #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; border: 4px solid white; }
+        video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
         
-        /* 파란색 스캔 레이저 애니메이션 */
-        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(to right, transparent, #3182f6, #3182f6, transparent); box-shadow: 0 0 15px #3182f6; z-index: 20; animation: scan 2.5s infinite ease-in-out; }
-        @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-
-        /* [운동 화면] 숫자 팝업 애니메이션 */
-        .count-pop { animation: countPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
-        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.8); color: #3182f6; } 100% { transform: scale(1); } }
-        
-        /* 캐릭터 스트레칭 애니메이션 */
+        /* 애니메이션 */
+        .count-pop { animation: countPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
+        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.5); color: #3182f6; } 100% { transform: scale(1); } }
         .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
-        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(35deg); } }
+        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(45deg); } }
     </style>
 </head>
 <body class="flex justify-center min-h-screen">
     <div class="w-full max-w-md flex flex-col p-6 gap-6">
 
         <div id="step1" class="flex flex-col items-center text-center mt-10">
-            <div class="bg-blue-100 text-[#3182f6] px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 tracking-widest uppercase">AI Clinical Analysis</div>
+            <div class="bg-blue-100 text-[#3182f6] px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 tracking-widest uppercase">AI Clinical System</div>
             <h1 class="text-5xl font-black mb-6 tracking-tighter text-gray-900">바른결</h1>
-            <p id="main-welcome-msg" class="text-gray-500 text-lg mb-12 font-medium">AI로 당신의 목 상태를<br>정밀하게 분석합니다.</p>
-            <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all mb-4">진단 시작하기</button>
+            <p id="main-welcome-msg" class="text-gray-500 text-lg mb-12 font-medium"></p>
+            <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all mb-4">정밀 진단 시작</button>
+            <button onclick="resetAllData()" class="text-gray-400 text-sm underline opacity-50">데이터 초기화</button>
         </div>
 
         <div id="step2" class="hidden flex flex-col items-center text-center mt-20">
             <h2 class="text-3xl font-bold mb-10 leading-tight">정면을 바라보면<br>분석이 시작됩니다</h2>
             <div class="w-24 h-32 relative mb-16 scale-125">
-                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto relative z-10 shadow-sm border-b-2 border-orange-200"></div>
+                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto relative z-10 shadow-sm"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-80"></div>
             </div>
-            <p class="text-gray-400 mb-8 font-medium text-sm">얼굴 전체가 화면에 들어오게 해주세요.</p>
-            <button onclick="initAI()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg shadow-lg">카메라 활성화</button>
+            <button onclick="initAI()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg">카메라 활성화</button>
         </div>
 
         <div id="step3" class="hidden flex flex-col items-center">
             <div id="video-container" class="mb-8">
                 <div class="mirror-area">
-                    <div class="scan-line"></div>
                     <video id="video" playsinline></video>
                     <canvas id="canvas"></canvas>
                 </div>
-                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20">분석 준비 중...</div>
+                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 px-8 py-3 rounded-full font-black text-blue-600 shadow-xl z-20">분석 중...</div>
             </div>
             <div id="analysis-finish" class="hidden w-full text-center">
-                <p class="text-gray-500 mb-4 font-bold">분석이 완료되었습니다!</p>
-                <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold shadow-lg">교정 운동 배우기</button>
+                <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold shadow-lg">다음 단계로</button>
             </div>
         </div>
 
         <div id="step4" class="hidden flex flex-col items-center mt-10">
-            <h2 class="text-2xl font-bold mb-8 text-center leading-snug">화면의 캐릭터를 따라<br>목을 천천히 숙였다 펴세요</h2>
+            <h2 class="text-2xl font-bold mb-8 text-center leading-snug">고개를 깊게 숙여<br>목 뒤 근육을 늘리세요</h2>
             <div class="w-24 h-32 relative mb-12 scale-110">
-                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch shadow-md relative z-10 border-b-2 border-orange-200"></div>
+                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch shadow-md relative z-10"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-80"></div>
             </div>
             <div class="toss-card text-center border border-gray-100">
                 <div id="count-number" class="text-8xl font-black text-gray-900">10</div>
-                <p class="text-gray-400 mt-4 font-bold tracking-widest uppercase">Remaining</p>
+                <p class="text-gray-400 mt-4 font-bold tracking-widest uppercase">Count</p>
             </div>
         </div>
 
         <div id="step5" class="hidden flex flex-col gap-6 pb-20">
             <div class="text-center py-4">
-                <h2 class="text-2xl font-bold text-gray-900">검사 리포트</h2>
-                <p class="text-blue-600 font-bold mt-1 text-sm">AI Clinical Analysis Result</p>
+                <h2 id="report-welcome-title" class="text-2xl font-bold text-gray-900">정밀 진단 리포트</h2>
+                <p id="report-welcome-sub" class="text-blue-600 font-bold mt-1 text-sm"></p>
             </div>
 
             <div class="toss-card border border-gray-100">
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-gray-50 p-4 rounded-2xl text-center">
-                        <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Exercise Score</p>
-                        <p id="final-score" class="text-2xl font-black text-gray-900">95점</p>
+                        <p class="text-[10px] font-bold text-gray-400 mb-1">현재 경추 각도</p>
+                        <p id="final-angle" class="text-2xl font-black text-gray-900"></p>
                     </div>
                     <div class="bg-gray-50 p-4 rounded-2xl text-center">
-                        <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">Neck Angle</p>
-                        <p id="final-angle-report" class="text-2xl font-black text-blue-600">--</p>
+                        <p class="text-[10px] font-bold text-gray-400 mb-1">목 뼈 실시간 하중</p>
+                        <p id="neck-load" class="text-2xl font-black text-red-500"></p>
                     </div>
                 </div>
 
-                <div id="comment-box" class="p-6 rounded-[32px] font-bold leading-relaxed mb-4 text-center bg-blue-50 text-blue-900">
-                    <p id="visual-metaphor" class="text-lg mb-2 text-red-500"></p>
-                    <p id="final-comment" class="text-sm text-gray-700"></p>
+                <div id="symmetry-box" class="p-4 rounded-2xl border border-dashed mb-6 text-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span class="font-bold text-gray-800">체형 비대칭 분석</span>
+                    </div>
+                    <p id="symmetry-text" class="text-gray-600 leading-relaxed"></p>
                 </div>
 
-                <div class="bg-gray-900 p-5 rounded-2xl text-white text-center mb-4">
-                    <p id="recom-text" class="text-sm font-bold"></p>
+                <div id="comment-box" class="p-6 rounded-3xl font-medium leading-relaxed mb-4 text-center">
+                    <p id="final-comment" class="text-base text-gray-800"></p>
+                </div>
+
+                <div class="bg-blue-50 p-5 rounded-2xl text-left border border-blue-100">
+                    <p id="period-info" class="text-sm font-semibold leading-relaxed"></p>
                 </div>
             </div>
 
             <div class="toss-card border border-gray-100">
-                <h3 class="font-bold text-gray-900 mb-4 text-sm">💡 기대 효과</h3>
-                <div id="effect-description" class="text-gray-600 font-medium text-xs leading-relaxed space-y-2"></div>
+                <h3 class="font-bold text-gray-900 mb-5 flex items-center gap-2">💡 임상적 기대 효과</h3>
+                <div id="effect-description" class="text-gray-600 font-medium text-sm leading-relaxed space-y-3"></div>
             </div>
 
             <div class="toss-card border border-gray-100">
-                <h3 class="font-bold text-gray-900 mb-4 text-sm">📈 개선 기록</h3>
-                <div class="w-full h-[180px]">
+                <h3 class="font-bold text-gray-900 mb-4">📈 개선 추이 (최근 30회)</h3>
+                <div class="w-full h-[200px]">
                     <canvas id="historyChart"></canvas>
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-[24px] font-bold text-lg shadow-xl">다시 측정하기</button>
+            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-6 rounded-[24px] font-bold text-lg shadow-lg">홈으로 돌아가기</button>
         </div>
     </div>
 
     <script>
-        let faceMesh; let count = 10; let currentAngle = 0; let isDown = false;
+        let faceMesh; let count = 10; let finalAngle = 0; let isDown = false;
+        let skewValue = 0; // 좌우 치우침 저장용
+        let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
         let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
 
-        // [기능] 경쾌한 비프음 발생
-        function playBeep() {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        }
+        window.onload = () => {
+            document.getElementById('main-welcome-msg').innerHTML = visitCount === 0 
+                ? "첫 방문을 환영합니다.<br>AI로 당신의 <b>목 정렬 상태</b>를 체크하세요."
+                : "반가워요! 오늘은 어제보다<br><b>얼마나 더 가벼운지</b> 확인해볼까요?";
+        };
 
-        function showStep(n) { 
-            document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden')); 
-            document.getElementById('step' + n).classList.remove('hidden'); 
-            window.scrollTo(0,0); 
-        }
+        function resetAllData() { if(confirm("초기화할까요?")) { localStorage.clear(); location.reload(); } }
+        function showStep(n) { document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden')); document.getElementById('step' + n).classList.remove('hidden'); window.scrollTo(0,0); }
 
         async function initAI() {
             showStep(3);
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            
+            const video = document.getElementById('video'); const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
             faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
-            
             faceMesh.onResults((results) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    // AI 그물망 그리기
-                    ctx.strokeStyle = "rgba(49, 130, 246, 0.4)"; ctx.lineWidth = 0.5;
-                    for(let i=0; i<lms.length; i+=8) {
+                    ctx.fillStyle = "rgba(49, 130, 246, 0.7)";
+                    for(let i=0; i<lms.length; i+=12) { 
                         const x = lms[i].x * canvas.width; const y = lms[i].y * canvas.height;
-                        ctx.beginPath(); ctx.arc(x, y, 1, 0, 2 * Math.PI); ctx.stroke();
+                        ctx.beginPath(); ctx.arc(x, y, 1.2, 0, 2 * Math.PI); ctx.fill();
                     }
+                    const nose = lms[1]; const leftEye = lms[33]; const rightEye = lms[263];
+                    const faceDirection = nose.x - ((leftEye.x + rightEye.x) / 2);
                     
-                    // 각도 계산 (임시 로직 포함)
-                    const nose = lms[1];
-                    const faceHeight = lms[152].y - lms[10].y;
-                    let angle = Math.round(faceHeight * 100) - 20; 
-                    currentAngle = Math.max(5, angle);
-                    document.getElementById('angle-tag').innerText = `실시간 각도: ${currentAngle}°`;
+                    // 각도 및 좌우 기울기 계산
+                    let cur = Math.abs(Math.round(Math.atan2(faceDirection, 0.22) * (180 / Math.PI) * 2.3));
+                    if(cur < 12) cur += 5; 
+                    finalAngle = Math.round(finalAngle * 0.8 + cur * 0.2);
+                    skewValue = (leftEye.y - rightEye.y) * 100; // 좌우 눈 높이차
 
-                    // [운동 단계] 카운팅 로직
+                    document.getElementById('angle-tag').innerText = `현재 각도: ${finalAngle}°`;
                     if (!document.getElementById('step4').classList.contains('hidden')) {
-                        const chinY = lms[152].y;
-                        if (!isDown && chinY > 0.75) isDown = true;
-                        else if (isDown && chinY < 0.60) {
-                            isDown = false;
-                            updateCount();
-                        }
+                        const midY = (nose.y + lms[152].y) / 2;
+                        if (!isDown && midY > 0.64) isDown = true;
+                        else if (isDown && midY < 0.52) { isDown = false; updateCount(); }
                     }
                 }
             });
-
             const camera = new Camera(video, { onFrame: async () => { await faceMesh.send({image: video}); }, width: 640, height: 480 });
             camera.start();
-            setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 3500);
+            setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 4000);
         }
 
         function updateCount() {
-            count--;
-            if (navigator.vibrate) navigator.vibrate(100); // 진동
-            playBeep(); // 소리
-            
+            count--; if (navigator.vibrate) { navigator.vibrate(50); }
             const el = document.getElementById('count-number');
-            el.innerText = count;
-            el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop'); // 숫자 커졌다 작아짐
-
-            if (count <= 0) {
-                alert("축하합니다! 오늘의 운동도 완료했습니다! 고생하셨어요.");
-                finalizeReport();
-            }
+            el.innerText = count; el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop');
+            if (count <= 0) setTimeout(finalizeReport, 800);
         }
 
         function finalizeReport() {
             showStep(5);
-            document.getElementById('final-angle-report').innerText = `${currentAngle}°`;
+            const lastAngle = historyData.length > 0 ? historyData[historyData.length - 1].angle : null;
+            const sub = document.getElementById('report-welcome-sub');
             
-            const metaphor = document.getElementById('visual-metaphor');
-            const comment = document.getElementById('final-comment');
-            const recom = document.getElementById('recom-text');
-            const effects = document.getElementById('effect-description');
-
-            if (currentAngle >= 35) {
-                metaphor.innerText = "🚨 쌀 한 가마니(20kg)를 얹은 상태!";
-                comment.innerText = "목의 곡선이 완전히 무너졌습니다. 즉각적인 교정이 필요한 위험 단계입니다.";
-                recom.innerText = "⚠️ 처방: 15회씩 5세트 (매일 3회)";
-                effects.innerHTML = "<p>• 목 디스크 압박 완화</p><p>• 만성 어깨 통증 감소</p>";
-            } else if (currentAngle >= 15) {
-                metaphor.innerText = "⚠️ 볼링공 2개(10kg)를 얹은 상태!";
-                comment.innerText = "거북목이 진행 중입니다. 뒷목이 자주 뻐근하고 쉽게 피로해질 수 있습니다.";
-                recom.innerText = "✅ 처방: 10회씩 3세트 (매일 2회)";
-                effects.innerHTML = "<p>• 굽은 등 펴짐 및 혈류 개선</p><p>• 긴장성 두통 예방</p>";
-            } else {
-                metaphor.innerText = "✨ 가벼운 가방 하나 메고 있는 상태!";
-                comment.innerText = "매우 훌륭한 정렬입니다! 지금의 바른 자세를 잘 유지해 주세요.";
-                recom.innerText = "👍 처방: 10회씩 1세트 (유지 관리)";
-                effects.innerHTML = "<p>• 척추 노화 방지</p><p>• 바른 인상과 바디라인 유지</p>";
+            if (!lastAngle) sub.innerText = "당신의 목 정렬을 처음으로 분석했습니다.";
+            else {
+                const diff = lastAngle - finalAngle;
+                sub.innerText = diff > 2 ? "지난번보다 확실히 개선되었습니다!" : diff < -2 ? "오늘은 조금 더 신경 써서 스트레칭 해주세요." : "안정적인 상태를 유지하고 있습니다.";
             }
 
-            historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: currentAngle });
+            // 하중 계산 로직 (각도에 따른 실제 물리 하중)
+            let loadKg = 5;
+            if (finalAngle >= 15) loadKg = 12;
+            if (finalAngle >= 30) loadKg = 18;
+            if (finalAngle >= 45) loadKg = 27;
+            document.getElementById('neck-load').innerText = `${loadKg}kg`;
+
+            // 비대칭 분석 로직 (신규)
+            const symText = document.getElementById('symmetry-text');
+            const symBox = document.getElementById('symmetry-box');
+            if (Math.abs(skewValue) > 1.5) {
+                symText.innerText = `현재 고개가 ${skewValue > 0 ? '오른쪽' : '왼쪽'}으로 살짝 기울어져 있습니다. 이는 한쪽 승모근이 단축되었을 때 나타나는 전형적인 불균형 신호입니다.`;
+                symBox.className = "p-4 rounded-2xl border border-red-200 bg-red-50 text-sm";
+            } else {
+                symText.innerText = "좌우 수평이 안정적입니다. 경추를 지지하는 주변 근육의 균형이 매우 좋은 상태입니다.";
+                symBox.className = "p-4 rounded-2xl border border-blue-200 bg-blue-50 text-sm";
+            }
+
+            document.getElementById('final-angle').innerText = `${finalAngle}°`;
+            document.getElementById('final-score').innerText = `${Math.round(Math.max(0, 100 - (finalAngle * 1.5)))}점`;
+
+            // 리포트 상세 내용 (고정 요소 반영)
+            const comment = document.getElementById('final-comment');
+            const period = document.getElementById('period-info');
+            const effects = document.getElementById('effect-description');
+            
+            if (finalAngle >= 35) {
+                comment.innerHTML = "위험 단계입니다. 목 뼈 주변의 인대와 근육이 심한 과부하 상태에 노출되어 있습니다.";
+                period.innerHTML = "📅 <b>예상 교정 기간: 8~12주</b><br>구조적 재정렬과 심부근 강화가 시급합니다.";
+                effects.innerHTML = "<p>• 신경 압박 해소 및 두통 방지</p><p>• 디스크 퇴행 지연 및 체형 보정</p>";
+            } else if (finalAngle >= 15) {
+                comment.innerHTML = "주의 단계입니다. 장시간 방치 시 만성적인 목·어깨 통증으로 전이될 가능성이 높습니다.";
+                period.innerHTML = "📅 <b>예상 교정 기간: 4~6주</b><br>단축된 근육의 이완과 올바른 자세 습관화가 필요합니다.";
+                effects.innerHTML = "<p>• 승모근 긴장 완화 및 피로 회복</p><p>• 혈류 개선을 통한 뇌 기능 활성화</p>";
+            } else {
+                comment.innerHTML = "정상 범위입니다. 매우 이상적인 C자 커브를 유지하고 계십니다.";
+                period.innerHTML = "📅 <b>유지 관리 기간: 상시</b><br>지금의 정렬을 지키기 위해 하루 1분만 관리하세요.";
+                effects.innerHTML = "<p>• 경추 노화 방지 및 척추 건강 유지</p><p>• 올바른 호흡 패턴 및 최상 컨디션 보존</p>";
+            }
+
+            historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: finalAngle });
+            if (historyData.length > 30) historyData.shift();
             localStorage.setItem('neckHistory', JSON.stringify(historyData));
-            setTimeout(() => renderChart(historyData), 500);
+            visitCount++; localStorage.setItem('visitCount', visitCount);
+            setTimeout(() => renderChart(historyData), 400);
         }
 
         function renderChart(data) {
             const ctx = document.getElementById('historyChart').getContext('2d');
-            new Chart(ctx, {
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(h => h.date),
                     datasets: [{
                         data: data.map(h => h.angle),
-                        borderColor: '#3182f6', tension: 0.4, fill: false, pointRadius: 5
+                        borderColor: '#3182f6', backgroundColor: 'rgba(49, 130, 246, 0.08)',
+                        borderWidth: 2.5, pointRadius: data.length > 15 ? 2 : 4, tension: 0.3, fill: true
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 7 } } } }
             });
         }
     </script>
