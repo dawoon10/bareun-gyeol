@@ -3,82 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바른결 - AI Healthcare</title>
+    <title>바른결 - AI Healthcare Solution</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; margin: 0; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; margin: 0; overflow-x: hidden; }
         .toss-card { background: white; border-radius: 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
         .hidden { display: none !important; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
-        video { object-fit: cover; width: 100%; height: 100%; -scale-x-1; }
         
-        /* 캐릭터 고개 숙이기 애니메이션 */
+        /* 분석 화면: 프라이버시 블러 적용 */
+        #video-container { position: relative; width: 100%; height: 100%; border-radius: 40px; overflow: hidden; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: blur(30px) brightness(0.6); }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
+        
+        /* 파란색 스캔 레이저 */
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #3182f6; box-shadow: 0 0 20px #3182f6; z-index: 20; animation: scan 3s infinite linear; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+
+        /* 카운트 숫자 확대/축소 애니메이션 */
+        .count-pop { animation: countPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes countPop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.4); } 100% { transform: scale(1); opacity: 1; } }
+
+        /* 캐릭터 운동 애니메이션 (고개 숙이기) */
         .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
-        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(45deg); } }
+        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(45deg) translateY(5px); } }
     </style>
 </head>
 <body class="flex flex-col items-center min-h-screen">
 
-    <div id="step1" class="w-full max-w-md flex flex-col items-center p-8 text-center bg-[#f9fafb]">
+    <div id="step1" class="w-full max-w-md flex flex-col items-center p-8 text-center">
         <span class="bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-xs font-bold mb-6 mt-10 uppercase tracking-widest">AI Healthcare Solution</span>
         <h1 class="text-5xl font-black text-[#191f28] mb-6">바른결</h1>
-        <p class="text-[#4e5968] text-lg mb-12">당신의 목 건강, <span class="font-bold text-[#3182f6]">얼굴 그물망 AI</span>가<br>실시간으로 정밀 분석해 드립니다.</p>
+        <p class="text-[#4e5968] text-lg mb-12 leading-relaxed font-medium">당신의 목 건강, <span class="text-[#3182f6]">AI 페이스 분석</span>으로<br>안전하고 정확하게 진단하세요.</p>
         <div class="w-full space-y-4 mb-20">
             <div class="toss-card p-6 flex items-center space-x-5 text-left">
-                <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-2xl">🕸️</div>
-                <div><div class="font-bold text-lg">페이스 그물망 분석</div><div class="text-sm text-gray-400 font-medium">468개의 포인트로 정밀 진단</div></div>
+                <div class="text-3xl">🛡️</div>
+                <div><div class="font-bold text-[#191f28]">프라이버시 보호</div><div class="text-sm text-gray-400">얼굴 노출 걱정 없는 강력 블러 처리</div></div>
             </div>
             <div class="toss-card p-6 flex items-center space-x-5 text-left">
-                <div class="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center text-white text-2xl">📋</div>
-                <div><div class="font-bold text-lg">성장 리포트</div><div class="text-sm text-gray-400 font-medium">10kg 쌀 포대 비유 분석</div></div>
+                <div class="text-3xl">📏</div>
+                <div><div class="font-bold text-[#191f28]">정밀 분석 그물망</div><div class="text-sm text-gray-400">실시간 얼굴 좌표를 통한 하중 측정</div></div>
             </div>
         </div>
-        <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-2xl active:scale-95 transition-all">지금 분석 시작하기</button>
+        <button onclick="showStep(2)" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-xl shadow-xl active:scale-95 transition-all">시작하기</button>
     </div>
 
     <div id="step2" class="hidden w-full max-w-md flex flex-col items-center justify-center p-8 text-center mt-20">
-        <h2 class="text-3xl font-bold mb-6 text-[#191f28]">그물망 생성을 위해<br>정면을 봐주세요</h2>
-        <div class="w-32 h-40 relative mb-10"><div class="absolute bottom-0 w-20 h-20 bg-blue-500 rounded-2xl left-6"></div><div class="absolute top-4 w-16 h-16 bg-[#ffdbac] rounded-full left-8"></div></div>
-        <button onclick="initAI()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg">AI 카메라 켜기</button>
+        <h2 class="text-3xl font-bold mb-6 text-[#191f28]">평소 모습 그대로<br>정면을 봐주세요</h2>
+        <div class="w-32 h-40 relative mb-10">
+            <div class="absolute bottom-0 w-20 h-20 bg-blue-500 rounded-2xl left-6 opacity-10"></div>
+            <div class="absolute top-4 w-16 h-16 bg-[#ffdbac] rounded-full left-8 shadow-sm"></div>
+        </div>
+        <p class="text-gray-500 mb-10">AI가 당신의 목 각도를 진단하는 동안<br>카메라가 얼굴을 안전하게 가려줍니다.</p>
+        <button onclick="initAI()" class="w-full bg-[#3182f6] text-white py-6 rounded-3xl font-bold text-lg">카메라 켜기</button>
     </div>
 
     <div id="step3" class="hidden w-full max-w-md p-6 flex flex-col items-center">
-        <div class="w-full aspect-[3/4] bg-black rounded-[40px] overflow-hidden relative shadow-2xl mb-8">
+        <div id="video-container" class="aspect-[3/4] shadow-2xl mb-8 border-4 border-white">
+            <div class="scan-line"></div>
             <video id="video" playsinline></video>
             <canvas id="canvas"></canvas>
-            <div id="angle-indicator" class="absolute bottom-10 left-1/2 -translate-x-1/2 bg-blue-600/90 text-white px-8 py-3 rounded-full font-black text-2xl z-20">측정 중...</div>
+            <div id="angle-tag" class="absolute bottom-10 left-1/2 -translate-x-1/2 bg-white/95 text-blue-600 px-8 py-3 rounded-full font-black text-2xl z-20 shadow-xl border border-blue-50">분석 중...</div>
         </div>
-        <div id="analysis-finish" class="hidden w-full toss-card p-8 text-center animate-bounce">
-            <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold">10회 교정 운동 시작</button>
+        <div id="analysis-finish" class="hidden w-full toss-card p-8 text-center">
+            <p class="text-blue-600 font-bold mb-4">정밀 진단이 완료되었습니다!</p>
+            <button onclick="showStep(4)" class="w-full bg-[#3182f6] text-white py-5 rounded-2xl font-bold">맞춤 운동법 확인하기</button>
         </div>
     </div>
 
     <div id="step4" class="hidden w-full max-w-md flex flex-col items-center p-8 text-center">
-        <h2 class="text-2xl font-bold mb-8">고개를 깊게 숙여주세요</h2>
-        <div class="w-32 h-40 relative mb-8"><div class="absolute bottom-0 w-20 h-20 bg-blue-500 rounded-2xl left-6"></div><div class="absolute top-4 w-16 h-16 bg-[#ffdbac] rounded-full left-8 ani-stretch"></div></div>
-        <div class="toss-card w-full p-10">
-            <div id="exercise-count" class="text-8xl font-black text-blue-600">10</div>
-            <div class="text-gray-400 mt-4 font-bold">REPS LEFT</div>
+        <h2 class="text-2xl font-bold mb-4 text-[#191f28]">고개를 깊게 숙였다가<br>천천히 돌아오세요</h2>
+        <div class="w-32 h-40 relative mb-8">
+            <div class="absolute bottom-0 w-20 h-20 bg-blue-500 rounded-2xl left-6"></div>
+            <div class="absolute top-4 w-16 h-16 bg-[#ffdbac] rounded-full left-8 ani-stretch shadow-md"></div>
+        </div>
+        <div class="toss-card w-full p-10 mb-8">
+            <div id="count-number" class="text-8xl font-black text-blue-600">10</div>
+            <div id="status-msg" class="text-gray-400 mt-4 font-bold tracking-widest">REMAINING</div>
         </div>
     </div>
 
-    <div id="step5" class="hidden w-full max-w-md p-6 flex flex-col items-center">
-        <div class="w-full toss-card p-10 bg-white">
-            <h2 class="text-2xl font-bold text-center mb-10">AI 정밀 리포트</h2>
-            <div class="text-center mb-12">
+    <div id="step5" class="hidden w-full max-w-md p-6 flex flex-col items-center overflow-y-auto pb-10">
+        <div class="w-full toss-card p-10 bg-white shadow-xl">
+            <h2 class="text-2xl font-bold text-center mb-10 text-[#191f28]">AI 정밀 진단 리포트</h2>
+            <div class="text-center mb-10">
                 <div id="final-angle" class="text-7xl font-black text-red-500 mb-2">0°</div>
-                <div class="text-red-600 font-bold bg-red-50 py-2 px-6 rounded-full inline-block">거북목 위험군</div>
+                <div class="text-gray-400 font-bold">오늘의 운동 점수: 98점</div>
             </div>
-            <div class="bg-gray-50 rounded-[30px] p-8 mb-10 border border-gray-100">
-                <p class="text-[#191f28] leading-relaxed text-lg font-medium text-center">
-                    현재 당신의 목은 <span class="text-red-600 font-bold underline decoration-4">10kg 쌀 한 포대</span>를<br>짊어지고 있는 것과 같아요! 😱
-                </p>
+            
+            <div id="comment-box" class="rounded-3xl p-8 mb-10 text-center border">
+                <p id="final-comment" class="text-[#191f28] leading-relaxed font-medium text-lg"></p>
             </div>
-            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-5 rounded-3xl font-bold text-xl">내일도 측정하기</button>
+
+            <div class="space-y-4 mb-10">
+                <div class="p-5 bg-blue-50 rounded-2xl text-left border border-blue-100">
+                    <div class="text-blue-600 font-bold text-sm mb-1">📋 추천 처방</div>
+                    <div id="prescribe-text" class="text-blue-900 font-medium text-base"></div>
+                </div>
+                <div class="p-5 bg-green-50 rounded-2xl text-left border border-green-100">
+                    <div class="text-green-600 font-bold text-sm mb-1">✨ 기대 효과</div>
+                    <div class="text-green-900 font-medium text-sm leading-relaxed">단축된 후두하근이 이완되어 목의 정렬이 정상화되고, 만성적인 어깨 결림과 두통이 예방됩니다.</div>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-[#3182f6] text-white py-5 rounded-3xl font-bold text-xl shadow-lg active:scale-95 transition-transform">다시 측정하기</button>
         </div>
     </div>
 
@@ -91,6 +120,7 @@
         function showStep(n) {
             document.querySelectorAll('body > div').forEach(d => d.classList.add('hidden'));
             document.getElementById('step' + n).classList.remove('hidden');
+            window.scrollTo(0,0);
         }
 
         async function initAI() {
@@ -99,34 +129,22 @@
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
 
-            faceMesh = new FaceMesh({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-            });
-
+            faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
             faceMesh.onResults((results) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (results.multiFaceLandmarks) {
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                     for (const landmarks of results.multiFaceLandmarks) {
-                        // 얼굴 그물망(Mesh) 그리기
-                        drawConnectors(ctx, landmarks, FACEMESH_TESSELATION, {color: '#C0C0C070', lineWidth: 1});
-                        
-                        // 각도 계산 로직 (코와 귀의 거리를 이용한 각도 산출)
-                        const nose = landmarks[1]; 
-                        const ear = landmarks[234];
-                        const dist = Math.abs(nose.x - ear.x) * 500;
-                        finalAngle = Math.round(dist);
-                        document.getElementById('angle-indicator').innerText = `실시간: ${finalAngle}°`;
+                        drawConnectors(ctx, landmarks, FACEMESH_TESSELATION, {color: '#3182f680', lineWidth: 1});
+                        const nose = landmarks[1]; const ear = landmarks[234];
+                        finalAngle = Math.round(Math.abs(nose.x - ear.x) * 450);
+                        document.getElementById('angle-tag').innerText = `현재 각도: ${finalAngle}°`;
 
-                        // 운동 카운팅 로직 (고개 숙임 감지)
-                        if (document.getElementById('step4').offsetParent !== null) {
-                            if (nose.y > 0.6 && !isStretched) { isStretched = true; }
-                            if (nose.y < 0.4 && isStretched) {
+                        if (!document.getElementById('step4').classList.contains('hidden')) {
+                            if (nose.y > 0.65 && !isStretched) isStretched = true;
+                            if (nose.y < 0.45 && isStretched) {
                                 isStretched = false;
-                                count--;
-                                document.getElementById('exercise-count').innerText = count;
-                                if (count <= 0) showStep(5);
-                                document.getElementById('final-angle').innerText = `${finalAngle}°`;
+                                updateCount();
                             }
                         }
                     }
@@ -135,15 +153,55 @@
 
             const camera = new Camera(video, {
                 onFrame: async () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
+                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
                     await faceMesh.send({image: video});
-                },
-                width: 640, height: 480
+                }, width: 640, height: 480
             });
             camera.start();
+            setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 4000);
+        }
 
-            setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 5000);
+        function updateCount() {
+            count--;
+            const countEl = document.getElementById('count-number');
+            countEl.innerText = count;
+            countEl.classList.remove('count-pop');
+            void countEl.offsetWidth; 
+            countEl.classList.add('count-pop');
+
+            if (count <= 0) {
+                document.getElementById('status-msg').innerText = "축하합니다! 오늘의 운동을 완료했습니다! 🎉";
+                document.getElementById('status-msg').className = "text-blue-600 mt-4 font-black text-xl animate-bounce";
+                setTimeout(() => finalizeReport(), 2000);
+            }
+        }
+
+        function finalizeReport() {
+            showStep(5);
+            document.getElementById('final-angle').innerText = `${finalAngle}°`;
+            const comment = document.getElementById('final-comment');
+            const prescribe = document.getElementById('prescribe-text');
+            const box = document.getElementById('comment-box');
+            
+            
+
+            if (finalAngle >= 45) {
+                comment.innerHTML = `현재 당신의 목은 <span class="text-red-600 font-bold underline">10kg 쌀 한 포대</span>를 짊어지고 있는 것과 같아요! 😱`;
+                prescribe.innerText = "매일 20회씩 5세트 집중 관리가 필요합니다.";
+                box.className = "rounded-3xl p-8 mb-10 text-center border-2 border-red-100 bg-red-50";
+            } else if (finalAngle >= 30) {
+                comment.innerHTML = `지금 당신의 목은 <span class="text-orange-500 font-bold underline">5kg 수박 한 통</span>의 무게를 견디고 있어요! 🍉`;
+                prescribe.innerText = "매일 15회씩 3세트 꾸준히 운동하세요.";
+                box.className = "rounded-3xl p-8 mb-10 text-center border-2 border-orange-100 bg-orange-50";
+            } else if (finalAngle >= 15) {
+                comment.innerHTML = `현재 목의 무게는 <span class="text-yellow-600 font-bold">가벼운 핸드백</span> 정도입니다. 조금 더 관리해볼까요? 👜`;
+                prescribe.innerText = "하루 10회씩 2세트 권장합니다.";
+                box.className = "rounded-3xl p-8 mb-10 text-center border-2 border-yellow-100 bg-yellow-50";
+            } else {
+                comment.innerHTML = `정말 훌륭해요! 목의 무게가 <span class="text-blue-600 font-bold">깃털처럼 가볍게</span> 느껴지는 완벽한 상태입니다. ✨`;
+                prescribe.innerText = "현재 자세를 유지하며 하루 1세트씩 스트레칭하세요.";
+                box.className = "rounded-3xl p-8 mb-10 text-center border-2 border-blue-100 bg-blue-50";
+            }
         }
     </script>
 </body>
