@@ -11,120 +11,114 @@
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
-        /* 토스 디자인 시스템 핵심: 여백과 폰트 */
         body { font-family: 'Pretendard', sans-serif; background-color: #ffffff; color: #191f28; margin: 0; letter-spacing: -0.02em; }
-        .toss-card { background: #f9fafb; border-radius: 24px; padding: 24px; width: 100%; }
+        .toss-card { background: #f9fafb; border-radius: 28px; padding: 24px; width: 100%; box-sizing: border-box; }
         .hidden { display: none !important; }
         
-        /* 버튼 스타일: 토스 블루 */
-        .btn-primary { background-color: #3182f6; color: white; border-radius: 18px; font-weight: 700; transition: all 0.2s; }
-        .btn-primary:active { background-color: #1b64da; transform: scale(0.98); }
-        .btn-secondary { background-color: #eff6ff; color: #3182f6; border-radius: 18px; font-weight: 700; }
+        /* 버튼 스타일 */
+        .btn-primary { background-color: #3182f6; color: white; border-radius: 20px; font-weight: 700; transition: all 0.2s; border: none; }
+        .btn-primary:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-secondary { background-color: #eff6ff; color: #3182f6; border-radius: 20px; font-weight: 700; border: none; }
 
-        /* 비디오 영역: 깔끔한 블랙/화이트 대비 */
-        #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 24px; overflow: hidden; background: #f2f4f6; }
+        /* 비디오 영역: 블러 효과 복구 */
+        #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 28px; overflow: hidden; background: #000; }
         .mirror-area { transform: scaleX(-1); position: relative; width: 100%; height: 100%; }
-        video { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9); }
+        video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
-        /* 캐릭터 애니메이션 (요청하신 로직 유지) */
+        /* 캐릭터 및 숫자 애니메이션 */
         .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
-        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(25deg); } }
+        @keyframes neckStretch { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(30deg); } }
         
-        /* 시니어 모드 스타일 보강 */
-        .senior-text { font-size: 1.5rem !important; line-height: 1.5 !important; font-weight: 700 !important; }
-        .senior-title { font-size: 2.2rem !important; font-weight: 800 !important; line-height: 1.3 !important; }
+        .count-pop { animation: countPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
+        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.8); color: #3182f6; } 100% { transform: scale(1); } }
+
+        /* 시니어 모드 텍스트 보강 */
+        .senior-text { font-size: 1.5rem !important; line-height: 1.6 !important; font-weight: 700 !important; }
+        .senior-title { font-size: 2.4rem !important; font-weight: 800 !important; line-height: 1.3 !important; }
     </style>
 </head>
 <body class="flex justify-center min-h-screen">
-    <div id="main-container" class="w-full max-w-md flex flex-col p-6 gap-10">
+    <div id="main-container" class="w-full max-w-md flex flex-col p-6 gap-8">
 
         <div id="step1" class="flex flex-col items-start mt-16 px-2">
-            <h1 class="text-4xl font-extrabold mb-3 text-[#3182f6]">바른결</h1>
-            <p class="text-xl font-bold text-[#4e5968] mb-16">정갈한 자세가<br>바른 숨을 만듭니다.</p>
+            <h1 class="text-5xl font-extrabold mb-4 text-[#3182f6]">바른결</h1>
+            <p class="text-2xl font-bold text-[#4e5968] mb-16 leading-tight">정갈한 자세가<br>바른 숨을 만듭니다.</p>
             
-            <div class="w-full flex flex-col gap-3">
-                <button onclick="startApp('senior')" class="w-full btn-primary py-6 text-xl">큰 글씨 모드로 시작</button>
-                <button onclick="startApp('normal')" class="w-full btn-secondary py-5 text-lg">기본 모드로 시작</button>
+            <div class="w-full flex flex-col gap-4">
+                <button onclick="startApp('senior')" class="w-full btn-primary py-7 text-2xl shadow-lg shadow-blue-100">큰 글씨 모드로 시작</button>
+                <button onclick="startApp('normal')" class="w-full btn-secondary py-5 text-xl">기본 모드로 시작</button>
             </div>
-            <p class="mt-8 text-[#8b95a1] text-sm font-medium">나에게 편안한 화면을 선택해 주세요</p>
+            <p class="mt-8 text-[#8b95a1] text-sm font-medium italic">"가장 편안한 화면을 선택해 보세요"</p>
         </div>
 
-        <div id="step2" class="hidden flex flex-col items-center mt-12">
-            <h2 id="guide-title" class="text-2xl font-bold mb-12 text-center leading-snug">코를 화면 중앙에<br>맞춰주세요</h2>
-            <div class="w-20 h-28 relative mb-16">
+        <div id="step2" class="hidden flex flex-col items-center mt-20">
+            <h2 id="guide-title" class="text-3xl font-bold mb-12 text-center leading-tight">코를 화면 중앙에<br>맞춰주세요</h2>
+            <div class="w-24 h-32 relative mb-16 scale-125">
                 <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto relative z-10 border-b-2 border-orange-100 shadow-sm"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-90"></div>
             </div>
-            <button onclick="initAI()" class="w-full btn-primary py-5 text-lg">카메라 켜기</button>
+            <button onclick="initAI()" class="w-full btn-primary py-6 text-xl">카메라 시작</button>
         </div>
 
         <div id="step3" class="hidden flex flex-col items-center">
-            <div id="video-container" class="mb-8 shadow-sm">
+            <div id="video-container" class="mb-8 shadow-2xl">
                 <div class="mirror-area">
                     <video id="video" playsinline></video>
                     <canvas id="canvas"></canvas>
                 </div>
-                <div id="angle-tag" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 px-6 py-2 rounded-2xl font-bold text-blue-600 shadow-sm z-20 text-xl">스캔 중</div>
+                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">측정 중</div>
             </div>
             <div id="analysis-finish" class="hidden w-full">
-                <button onclick="showStep(4)" class="w-full btn-primary py-5 text-lg">운동 시작하기</button>
+                <button onclick="showStep(4)" class="w-full btn-primary py-6 text-xl">10회 운동 시작하기</button>
             </div>
         </div>
 
-        <div id="step4" class="hidden flex flex-col items-center mt-10">
-            <h2 id="exercise-title" class="text-2xl font-bold mb-10 text-center">고개를 천천히<br>숙였다가 펴보세요</h2>
-            <div class="w-20 h-28 relative mb-12">
-                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch shadow-sm relative z-10"></div>
+        <div id="step4" class="hidden flex flex-col items-center mt-12">
+            <h2 id="exercise-title" class="text-3xl font-bold mb-12 text-center leading-tight">고개를 천천히<br>숙였다가 펴보세요</h2>
+            <div class="w-24 h-32 relative mb-16 scale-125">
+                <div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch shadow-md relative z-10"></div>
                 <div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-90"></div>
             </div>
-            <div class="toss-card text-center">
-                <div id="count-number" class="text-8xl font-black text-[#191f28]">10</div>
-                <p class="text-lg font-bold text-[#8b95a1] mt-4">남은 횟수</p>
+            <div class="toss-card text-center bg-[#f9fafb]">
+                <div id="count-number" class="text-9xl font-black text-[#191f28] leading-none">10</div>
+                <p class="text-2xl font-bold text-[#8b95a1] mt-8 uppercase tracking-widest">Count</p>
             </div>
         </div>
 
-        <div id="step5" class="hidden flex flex-col gap-6 pb-20">
-            <div class="px-2 mt-4">
-                <h2 id="report-main-title" class="text-3xl font-bold">오늘의 자세 분석</h2>
-                <p id="top-msg" class="text-[#3182f6] font-bold mt-2 text-lg"></p>
+        <div id="step5" class="hidden flex flex-col gap-6 pb-24">
+            <div class="px-2 mt-6">
+                <h2 id="report-main-title" class="text-4xl font-extrabold text-[#191f28]">건강 리포트</h2>
+                <p id="top-msg" class="text-[#3182f6] font-bold mt-3 text-2xl"></p>
             </div>
 
-            <div class="toss-card flex justify-between items-center py-7 px-8">
-                <p class="text-[#4e5968] font-bold text-lg">기울어진 각도</p>
-                <p id="final-angle" class="text-3xl font-black">--°</p>
+            <div class="toss-card flex justify-between items-center py-8 px-8">
+                <p class="text-[#4e5968] font-bold text-xl">기울어진 각도</p>
+                <p id="final-angle" class="text-5xl font-black">--°</p>
             </div>
             
-            <div class="toss-card flex justify-between items-center py-7 px-8">
-                <p class="text-[#4e5968] font-bold text-lg">목 뼈 무게 부담</p>
-                <p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p>
+            <div class="toss-card flex justify-between items-center py-8 px-8">
+                <p class="text-[#4e5968] font-bold text-xl">목이 느끼는 무게</p>
+                <p id="final-kg" class="text-5xl font-black text-[#f04452]">--kg</p>
             </div>
 
-            <div class="toss-card bg-red-50">
-                <h3 class="font-bold text-[#191f28] mb-3 text-lg">알려드립니다</h3>
-                <p id="metaphor-text" class="text-[#333d4b] leading-relaxed font-bold mb-4 text-base"></p>
-                <div id="threshold-warning" class="text-[#f04452] font-bold p-4 bg-white rounded-2xl border border-red-100 text-base"></div>
+            <div class="toss-card bg-red-50 border border-red-100">
+                <h3 class="font-bold text-[#191f28] mb-4 text-xl italic">📢 꼭 확인해 주세요</h3>
+                <p id="metaphor-text" class="text-[#333d4b] leading-relaxed font-bold mb-5 text-lg"></p>
+                <div id="threshold-warning" class="text-[#f04452] font-black p-5 bg-white rounded-2xl border border-red-50 text-lg shadow-sm"></div>
             </div>
 
             <div class="toss-card">
-                <h3 class="font-bold text-[#191f28] mb-4 text-lg">운동 효과</h3>
-                <div id="clinical-effects" class="space-y-3"></div>
+                <h3 class="font-bold text-[#191f28] mb-4 text-xl">💡 이런 효과가 있어요</h3>
+                <div id="clinical-effects" class="space-y-4"></div>
             </div>
 
             <div class="toss-card bg-[#191f28] text-white">
-                <h3 class="text-[#3182f6] mb-4 text-sm font-bold uppercase tracking-wider">Guide</h3>
-                <div id="rx-content" class="space-y-3 font-bold text-lg opacity-90"></div>
+                <h3 class="text-[#3182f6] mb-6 text-sm font-bold uppercase tracking-widest">Personal Guide</h3>
+                <div id="rx-content" class="space-y-4 font-bold text-xl opacity-95"></div>
             </div>
 
-            <div class="px-2">
-                <h3 class="font-bold text-[#191f28] mb-4 text-lg">나의 변화</h3>
-                <div class="w-full h-[180px]"><canvas id="historyChart"></canvas></div>
-            </div>
-
-            <button onclick="location.reload()" class="w-full btn-primary py-6 text-xl mt-4">다시 측정하기</button>
-            <p class="text-sm text-[#8b95a1] text-center leading-relaxed px-4">
-                이 결과는 자세를 돕는 참고용입니다. 아프실 때는 꼭 병원을 방문해 주세요.
-            </p>
+            <button onclick="location.reload()" class="w-full btn-primary py-7 text-2xl mt-6">처음 화면으로</button>
         </div>
     </div>
 
@@ -132,6 +126,16 @@
         let faceMesh; let count = 10; let currentAngle = 0; let isDown = false;
         let audioCtx; let userMode = 'normal'; 
         let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
+
+        function playBeep() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
 
         function showStep(n) { document.querySelectorAll('body > div > div').forEach(d => d.classList.add('hidden')); document.getElementById('step' + n).classList.remove('hidden'); window.scrollTo(0,0); }
 
@@ -170,8 +174,10 @@
         }
 
         function updateCount() {
-            count--; if (navigator.vibrate) navigator.vibrate(60);
+            count--; playBeep(); if (navigator.vibrate) navigator.vibrate(80);
             const el = document.getElementById('count-number'); el.innerText = count;
+            // 숫자 커지는 애니메이션 복구
+            el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop');
             if (count <= 0) finalizeReport();
         }
 
@@ -191,31 +197,22 @@
             if(currentAngle >= 30) {
                 topMsg.innerText = isS ? "조금만 힘내볼까요? 관리가 필요해요" : "집중 관리가 필요한 단계입니다";
                 metaphor.innerText = `🚨 지금 목은 쌀 한 가마니(${kg}kg)를 지탱하고 있어요.`;
-                threshold.innerText = "거북목 자세가 관찰됩니다. 매일 함께 운동해요.";
-                effects.innerHTML = `<div class="bg-blue-50 p-4 rounded-2xl text-[#3182f6] font-bold">뭉친 근육을 풀어주어 만성 피로 완화에 도움을 줍니다.</div>`;
-                rx.innerHTML = `<p>• 일일 15회 / 5세트</p><p>• 12주 이상 꾸준히</p>`;
+                threshold.innerText = "거북목 자세가 심화되었습니다. 매일 함께 운동해요.";
+                effects.innerHTML = `<div class="bg-blue-50 p-5 rounded-3xl text-blue-800 font-bold ${isS?'text-2xl':'text-lg'}">목 주변의 신경 압박을 줄여 피로 완화를 돕습니다.</div>`;
+                rx.innerHTML = `<p>• 하루 15번 / 5번씩 나눠서</p><p>• 12주 이상 꾸준히 하기</p>`;
             } else if(currentAngle >= 15) {
                 topMsg.innerText = isS ? "나쁘지 않아요! 조금만 더 펴볼까요?" : "주의 단계입니다. 바른 정렬을 찾아봐요";
-                metaphor.innerText = `⚠️ 지금 목은 큰 수박 한 통(${kg}kg)의 무게예요.`;
-                threshold.innerText = "일자목 증상이 보여요. 고개를 조금만 더 들어주세요.";
-                effects.innerHTML = `<div class="bg-blue-50 p-4 rounded-2xl text-[#3182f6] font-bold">목의 곡선을 되찾아 어깨 결림 예방을 돕습니다.</div>`;
-                rx.innerHTML = `<p>• 일일 10회 / 3세트</p><p>• 8주간 습관 만들기</p>`;
+                metaphor.innerText = `⚠️ 지금 목은 큰 수박 한 통(${kg}kg)의 무게를 견디고 있어요.`;
+                threshold.innerText = "일자목 증상이 보입니다. 고개를 조금만 더 들어주세요.";
+                effects.innerHTML = `<div class="bg-blue-50 p-5 rounded-3xl text-blue-800 font-bold ${isS?'text-2xl':'text-lg'}">목의 정상 곡선을 되찾아 어깨 통증 예방을 돕습니다.</div>`;
+                rx.innerHTML = `<p>• 하루 10번 / 3번씩 나눠서</p><p>• 8주간 바른 습관 만들기</p>`;
             } else {
                 topMsg.innerText = isS ? "정말 멋져요! 아주 바른 자세입니다" : "최상의 컨디션! 바른 정렬 상태입니다";
-                metaphor.innerText = `✨ 지금처럼 가벼운 무게(${kg}kg)를 유지하는 게 좋아요.`;
-                effects.innerHTML = `<div class="bg-blue-50 p-4 rounded-2xl text-[#3182f6] font-bold">바른 정렬은 척추 노화를 방지하고 혈류를 맑게 합니다.</div>`;
-                rx.innerHTML = `<p>• 일일 10회 유지</p><p>• 좋은 습관 유지하기</p>`;
-                threshold.innerText = "매우 이상적인 자세입니다. 계속 관리해 주세요!";
+                metaphor.innerText = `✨ 지금처럼 가벼운 무게(${kg}kg)를 유지하는 것이 가장 좋아요.`;
+                effects.innerHTML = `<div class="bg-blue-50 p-5 rounded-3xl text-blue-800 font-bold ${isS?'text-2xl':'text-lg'}">바른 정렬은 척추 노화를 방지하고 혈류를 원활하게 합니다.</div>`;
+                rx.innerHTML = `<p>• 하루 10번 (생각날 때마다)</p><p>• 지금의 좋은 습관 유지하기</p>`;
+                threshold.innerText = "참 잘하셨습니다! 지금 자세를 계속 유지해 주세요.";
             }
-
-            historyData.push({ date: new Date().toLocaleDateString('ko-KR', {month:'short', day:'numeric'}), angle: currentAngle });
-            localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-30)));
-            setTimeout(() => {
-                new Chart(document.getElementById('historyChart').getContext('2d'), {
-                    type: 'line', data: { labels: historyData.map(h => h.date), datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', tension: 0.4, fill: false, pointRadius: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-                });
-            }, 500);
         }
     </script>
 </body>
