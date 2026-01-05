@@ -11,59 +11,46 @@
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         :root { --ts: 1rem; }
-        .senior-mode { --ts: 1.4rem; }
-        
-        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; font-size: var(--ts); transition: font-size 0.3s; }
+        .senior-mode { --ts: 1.3rem; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f2f4f6; color: #191f28; margin: 0; font-size: var(--ts); overflow-x: hidden; }
         .white-card { background: white; border-radius: 32px; padding: 24px; width: 100%; margin-bottom: 16px; box-sizing: border-box; }
         .hidden { display: none !important; }
-        
-        /* 텍스트 크기 강제 제어 */
         .dynamic-h1 { font-size: calc(var(--ts) * 3); font-weight: 800; }
         .dynamic-h2 { font-size: calc(var(--ts) * 1.5); font-weight: 700; }
-        .dynamic-p { font-size: var(--ts); line-height: 1.6; }
-        
-        .btn-primary { background-color: #3182f6; color: white; border-radius: 20px; font-weight: 700; width: 100%; padding: 1.5rem; font-size: calc(var(--ts) * 1.1); border: none; cursor: pointer; }
-        
-        /* 운동 애니메이션 */
-        .ani-stretch { animation: neckStretch 3s infinite ease-in-out; transform-origin: bottom center; }
-        @keyframes neckStretch { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, 15px); } }
-        
-        /* 숫자 팝업 효과 복구 */
-        .count-pop { animation: countPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .btn-primary { background-color: #3182f6; color: white; border-radius: 24px; font-weight: 700; width: 100%; padding: 1.5rem; font-size: calc(var(--ts) * 1.2); border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:active { transform: scale(0.96); }
+        .count-pop { animation: countPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block; }
         @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.8); color: #3182f6; } 100% { transform: scale(1); } }
-
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
+        video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.7); }
         canvas#ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
+        .ani-stretch { animation: neckStretch 3s infinite ease-in-out; }
+        @keyframes neckStretch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(15px); } }
     </style>
 </head>
 <body>
-    <div id="main-container" class="w-full max-w-md mx-auto relative p-4">
+    <div id="main-container" class="w-full max-w-md mx-auto p-4">
         <div id="step1" class="flex flex-col pt-12">
             <h1 class="dynamic-h1 mb-4 text-[#3182f6]">바른결</h1>
             <p class="dynamic-h2 text-[#4e5968] mb-16">정갈한 자세가<br>바른 숨을 만듭니다.</p>
-            <button onclick="startApp('senior')" class="btn-primary mb-4 shadow-xl">큰 글씨 모드로 시작</button>
-            <button onclick="startApp('normal')" class="w-full bg-white text-[#3182f6] py-5 rounded-2xl font-bold border border-blue-100">기본 모드로 시작</button>
-        </div>
-
-        <div id="step2" class="hidden flex flex-col items-center pt-10 text-center">
-            <h2 class="dynamic-h2 mb-4">정확한 측정을 위해</h2>
-            <p class="dynamic-p text-[#3182f6] font-bold mb-12">턱을 당겨 정면을 보시고<br>약 60cm 거리를 유지하세요</p>
-            <div class="w-20 h-28 relative mb-12"><div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch relative z-10"></div><div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-90"></div></div>
-            <button onclick="initAI()" class="btn-primary">측정 시작</button>
+            <button onclick="startApp('senior')" class="btn-primary mb-4 shadow-xl">큰 글씨 모드 시작</button>
+            <button onclick="startApp('normal')" class="w-full bg-white text-[#3182f6] py-5 rounded-3xl font-bold border border-blue-100">기본 모드 시작</button>
         </div>
 
         <div id="step3" class="hidden text-center">
-            <p class="dynamic-p text-[#3182f6] font-bold mb-4">코를 화면 중앙에 맞춰주세요</p>
-            <div id="video-container" class="mb-8 shadow-2xl"><video id="video" playsinline></video><canvas id="ai-canvas"></canvas><div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div></div>
-            <div id="analysis-finish" class="hidden"><button onclick="showStep(4)" class="btn-primary">운동 시작하기</button></div>
+            <p class="mb-4 font-bold text-[#3182f6]">기준 자세를 측정합니다 (정면 응시)</p>
+            <div id="video-container" class="mb-8 shadow-2xl">
+                <video id="video" playsinline></video><canvas id="ai-canvas"></canvas>
+                <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div>
+            </div>
+            <div id="analysis-finish" class="hidden"><button onclick="startExercise()" class="btn-primary">운동 시작하기</button></div>
         </div>
 
         <div id="step4" class="hidden flex flex-col items-center text-center">
-            <h2 class="dynamic-h2 mb-4">턱만 뒤로 쏙 미세요!</h2>
-            <p class="dynamic-p text-[#3182f6] font-bold mb-8">정면을 본 채로 턱만 당겨주세요</p>
-            <div class="w-20 h-28 relative mb-10"><div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto ani-stretch relative z-10 shadow-sm"></div><div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-90"></div></div>
-            <div class="white-card py-10"><div id="count-number" class="text-8xl font-black text-[#191f28] transition-all">10</div><p class="text-[#8b95a1] font-bold mt-2">횟수</p></div>
+            <h2 class="dynamic-h2 mb-4">턱을 뒤로 쏙 미세요!</h2>
+            <p class="text-[#3182f6] font-bold mb-8">정면을 본 채 거리가 멀어지면 성공</p>
+            <div class="w-20 h-28 relative mb-10 ani-stretch"><div class="w-16 h-16 bg-[#ffdbac] rounded-full mx-auto shadow-sm"></div><div class="w-20 h-16 bg-[#3182f6] rounded-2xl mt-[-10px] mx-auto opacity-90"></div></div>
+            <div class="white-card py-10"><div id="count-number" class="text-8xl font-black text-[#191f28]">10</div><p class="text-[#8b95a1] font-bold mt-2">성공 횟수</p></div>
         </div>
 
         <div id="step5" class="hidden">
@@ -75,26 +62,30 @@
                 <div class="white-card !mb-0 flex-1 text-center"><p class="text-[#8b95a1] font-bold text-xs mb-1">예상 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
             </div>
 
-            <div class="white-card bg-[#fff0f1] border border-[#ffe0e2]"><h3 class="font-bold mb-2">🔍 자세 밸런스 결과</h3><p id="metaphor-text" class="dynamic-p text-[#4e5968]"></p></div>
+            <div class="white-card bg-[#fff0f1] border border-[#ffe0e2]"><h3 class="font-bold mb-2">🔍 자세 밸런스 결과</h3><p id="metaphor-text" class="text-sm text-[#4e5968] leading-relaxed"></p></div>
 
-            <div class="white-card"><h3 class="font-bold mb-4">💡 개인 맞춤 운동 플랜</h3>
-                <div id="plan-container" class="space-y-3">
-                    <div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span class="text-gray-500">운동 횟수</span><span id="guide-reps" class="font-bold text-blue-600">--회</span></div>
-                    <div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span class="text-gray-500">일일 세트</span><span id="guide-sets" class="font-bold text-blue-600">--세트</span></div>
-                    <div class="flex justify-between bg-blue-50 p-3 rounded-xl"><span class="text-blue-700 font-bold">예상 개선 기간</span><span id="guide-period" class="font-bold text-blue-700">약 --주</span></div>
+            <div class="white-card">
+                <h3 class="font-bold mb-4">💡 목표 개선 플랜</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between bg-gray-50 p-3 rounded-xl"><span>일일 목표</span><span id="guide-plan" class="font-bold text-blue-600">--</span></div>
+                    <div class="flex justify-between bg-blue-50 p-3 rounded-xl"><span class="font-bold text-blue-700">집중 개선 기간</span><span id="guide-period" class="font-bold text-blue-700">--</span></div>
                 </div>
             </div>
 
-            <div class="white-card"><h3 class="font-bold mb-3 text-sm">📈 최근 7회 데이터 추이</h3><div style="height: 150px;"><canvas id="historyChart"></canvas></div></div>
+            <div class="white-card">
+                <h3 id="chart-title" class="font-bold mb-3 text-sm">📈 개선 추이</h3>
+                <div style="height: 180px;"><canvas id="historyChart"></canvas></div>
+            </div>
 
-            <div class="mt-4 px-4 py-4 bg-gray-100 rounded-2xl text-[10px] text-[#8b95a1] leading-relaxed">⚠️ 본 분석은 인공지능 수치이며 의료적 판단이 아닙니다. 통증 시 전문의와 상담하세요.</div>
-            <button onclick="location.reload()" class="btn-primary mt-6 mb-10">메인으로 돌아가기</button>
+            <div class="mt-4 px-4 py-4 bg-gray-100 rounded-2xl text-[10px] text-[#8b95a1]">⚠️ 본 서비스는 의료용이 아니며, 통증 발생 시 전문의와 상담하십시오.</div>
+            <button onclick="location.reload()" class="btn-primary mt-6 mb-10">확인</button>
         </div>
     </div>
 
     <script>
-        let faceMesh; let count = 10; let capturedAngle = 0; let isTucked = false;
-        let audioCtx; let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
+        let faceMesh; let count = 10; let capturedAngle = 0; 
+        let isBack = false; let baseFaceWidth = 0; let audioCtx;
+        let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
         let chartInstance = null;
 
         function playBeep() {
@@ -109,15 +100,15 @@
         function showStep(n) {
             document.querySelectorAll('#main-container > div').forEach(d => d.classList.add('hidden'));
             document.getElementById('step' + n).classList.remove('hidden');
-            if(n === 5) setTimeout(renderChart, 300);
         }
 
         function startApp(mode) {
             if(mode === 'senior') document.documentElement.classList.add('senior-mode');
-            else document.documentElement.classList.remove('senior-mode');
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            showStep(2);
+            initAI();
         }
+
+        function startExercise() { showStep(4); }
 
         async function initAI() {
             showStep(3);
@@ -130,18 +121,32 @@
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
                     const nose = lms[1]; const chin = lms[152]; const forehead = lms[10];
+                    const leftFace = lms[234]; const rightFace = lms[454];
+                    
+                    // 1. 각도 계산 (기존 로직 유지)
                     const headSize = Math.abs(chin.y - forehead.y);
                     const ratio = Math.abs(chin.y - nose.y) / headSize;
-                    
-                    let liveAngle = Math.max(0, Math.round((0.48 - ratio) * 200));
-                    capturedAngle = liveAngle;
-                    document.getElementById('angle-tag').innerText = `${liveAngle}°`;
+                    capturedAngle = Math.max(0, Math.round((0.48 - ratio) * 200));
+                    document.getElementById('angle-tag').innerText = `${capturedAngle}°`;
 
+                    // 2. 기준 얼굴 너비 저장 (Z축 거리 측정용)
+                    const currentFaceWidth = Math.sqrt(Math.pow(rightFace.x - leftFace.x, 2) + Math.pow(rightFace.y - leftFace.y, 2));
+                    if (baseFaceWidth === 0) baseFaceWidth = currentFaceWidth;
+
+                    // 3. 운동 카운팅 (Distance + Gaze Logic)
                     if (!document.getElementById('step4').classList.contains('hidden')) {
-                        // [운동 인식] 고개를 숙이지 않고 턱을 당길 때의 미세한 수직/깊이 변화 감지
-                        // 턱을 뒤로 밀면 코(nose.y)가 미세하게 위로 올라가거나 고정되는 수직 비율을 사용
-                        if (!isTucked && nose.y < 0.445) isTucked = true; 
-                        else if (isTucked && nose.y > 0.47) { isTucked = false; updateCount(); }
+                        const isLookingFront = Math.abs(lms[1].x - 0.5) < 0.1; // 시선 중앙 응시 여부
+                        const distanceRatio = currentFaceWidth / baseFaceWidth; // 얼굴 작아짐 체크
+
+                        // 뒤로 당김 (얼굴이 기준보다 5% 이상 작아지고 정면을 볼 때)
+                        if (!isBack && distanceRatio < 0.95 && isLookingFront) {
+                            isBack = true;
+                        } 
+                        // 원래대로 돌아옴
+                        else if (isBack && distanceRatio > 0.98) {
+                            isBack = false;
+                            updateCount();
+                        }
                     }
                 }
             });
@@ -159,33 +164,30 @@
         }
 
         function finalizeReport() {
-            let status = "안정적 정렬"; let color = "#3182f6"; let kg = 5;
-            let metaphor = "좌우 균형과 앞뒤 정렬이 아주 안정적입니다. 지금의 바른 자세를 유지하는 것만으로도 충분합니다.";
-            let reps = 10; let sets = 1; let period = 2;
+            let status = "균형 양호"; let color = "#3182f6"; let kg = 5; let period = 2;
+            let metaphor = "목의 정렬 상태가 안정적입니다. 지금의 습관을 유지하는 것이 중요합니다.";
 
             if(capturedAngle >= 31) {
-                status = "불균형 심함"; color = "#f04452"; kg = 21;
-                metaphor = `기울기가 ${capturedAngle}도로 상당히 높습니다. 무게 중심이 앞쪽으로 쏠려 있어 뒷목 근육에 과도한 긴장이 발생한 상태입니다.`;
-                reps = 15; sets = 5; period = 8;
+                status = "정렬 불안정"; color = "#f04452"; kg = 21; period = 8;
+                metaphor = "무게 중심이 상당히 앞쪽으로 쏠려 있어 경추 주위 근육에 피로가 높은 상태입니다.";
             } else if(capturedAngle >= 16) {
-                status = "불균형 시작"; color = "#ff9500"; kg = 13;
-                metaphor = `서서히 무게 중심이 무너지고 있습니다. 평소보다 목 정렬에 더 세심한 주의가 필요한 단계입니다.`;
-                reps = 12; sets = 3; period = 4;
+                status = "정렬 비대칭"; color = "#ff9500"; kg = 13; period = 4;
+                metaphor = "중심 축이 서서히 무너지고 있습니다. 평소 자세에 대한 관찰이 필요합니다.";
             }
 
-            const badge = document.getElementById('neck-status-badge');
-            badge.innerText = status; badge.style.backgroundColor = color;
+            document.getElementById('neck-status-badge').innerText = status;
+            document.getElementById('neck-status-badge').style.backgroundColor = color;
             document.getElementById('final-angle').innerText = `${capturedAngle}°`;
             document.getElementById('final-kg').innerText = `${kg}kg`;
             document.getElementById('metaphor-text').innerText = metaphor;
-            
-            document.getElementById('guide-reps').innerText = `${reps}회`;
-            document.getElementById('guide-sets').innerText = `${sets}세트`;
-            document.getElementById('guide-period').innerText = `약 ${period}주 이상`;
+            document.getElementById('guide-plan').innerText = `${Math.ceil(capturedAngle/10 + 10)}회 / 3세트`;
+            document.getElementById('guide-period').innerText = `${period}주 집중 관리`;
+            document.getElementById('chart-title').innerText = `📈 최근 ${period}주 목표 개선 추이`;
             
             historyData.push({ date: new Date().toLocaleDateString('ko-KR', {day:'numeric', month:'short'}), angle: capturedAngle });
-            localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-7)));
+            localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-10)));
             showStep(5);
+            setTimeout(renderChart, 300);
         }
 
         function renderChart() {
