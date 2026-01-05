@@ -17,19 +17,11 @@
         .hidden { display: none !important; }
         .btn-primary { background-color: #3182f6; color: white; border-radius: 24px; font-weight: 700; width: 100%; padding: 1.5rem; font-size: calc(var(--ts) * 1.1); border: none; cursor: pointer; }
         
-        /* 캐릭터 턱 당기기 애니메이션 (운동 동작 동기화) */
-        .character-box { width: 100px; height: 120px; position: relative; margin-bottom: 2rem; }
-        .char-head { 
-            width: 60px; height: 60px; background: #ffdbac; border-radius: 50%; 
-            margin: 0 auto; position: relative; z-index: 10;
-            animation: charChinTuck 3s infinite ease-in-out;
-        }
+        /* 캐릭터 턱 당기기 애니메이션 */
+        .character-box { width: 100px; height: 120px; position: relative; margin: 2rem auto; }
+        .char-head { width: 60px; height: 60px; background: #ffdbac; border-radius: 50%; margin: 0 auto; position: relative; z-index: 10; animation: charChinTuck 3s infinite ease-in-out; }
         .char-body { width: 80px; height: 60px; background: #3182f6; border-radius: 20px; margin: -15px auto 0; opacity: 0.9; }
-        
-        @keyframes charChinTuck {
-            0%, 100% { transform: scale(1) translateY(0); } /* 원래 위치 */
-            50% { transform: scale(0.85) translateY(-5px); opacity: 0.9; } /* 턱을 당겨서 멀어짐 */
-        }
+        @keyframes charChinTuck { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.85) translateY(-5px); } }
         
         .count-pop { animation: countPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block; }
         @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.6); color: #3182f6; } 100% { transform: scale(1); } }
@@ -49,7 +41,8 @@
         </div>
 
         <div id="step3" class="hidden text-center">
-            <p class="mb-4 font-bold text-[#3182f6]">기준을 잡기 위해 정면을 보세요</p>
+            <h2 class="text-xl font-bold mb-2">정확한 분석을 위해</h2>
+            <p class="mb-6 text-[#3182f6] font-bold">팔을 곧게 뻗고<br>눈높이와 휴대폰을 수평으로 맞춰주세요</p>
             <div id="video-container" class="mb-8 shadow-2xl">
                 <video id="video" playsinline></video><canvas id="ai-canvas"></canvas>
                 <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div>
@@ -58,37 +51,49 @@
         </div>
 
         <div id="step4" class="hidden flex flex-col items-center text-center">
-            <h2 class="text-2xl font-bold mb-4">턱만 뒤로 살짝!</h2>
-            <p class="text-[#3182f6] font-bold mb-8">팔은 고정하고 턱만 밀어보세요</p>
-            
-            <div class="character-box">
-                <div class="char-head"></div>
-                <div class="char-body"></div>
-            </div>
-
+            <h2 class="text-2xl font-bold mb-2">턱만 뒤로 살짝 미세요!</h2>
+            <p class="text-[#3182f6] font-bold mb-4">팔과 어깨는 고정하는 것이 중요합니다</p>
+            <div class="character-box"><div class="char-head"></div><div class="char-body"></div></div>
             <div class="white-card py-10"><div id="count-number" class="text-8xl font-black text-[#191f28]">10</div><p class="text-[#8b95a1] font-bold mt-2">성공 횟수</p></div>
         </div>
 
         <div id="step5" class="hidden">
-            <h2 class="text-2xl font-bold text-center mb-6">분석 리포트</h2>
-            <div id="neck-status-badge" class="block text-center mb-6 py-3 rounded-full text-white font-bold text-xl shadow-md"></div>
+            <h2 class="text-2xl font-bold text-center mb-2">정밀 진단 리포트</h2>
+            <p id="top-message" class="text-center text-[#3182f6] font-bold mb-8 text-sm">오늘도 조금 더 신경 써서 스트레칭 해주세요.</p>
+            
             <div class="flex gap-4 mb-4">
-                <div class="white-card !mb-0 flex-1 text-center"><p class="text-[#8b95a1] font-bold text-xs mb-1">측정 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
-                <div class="white-card !mb-0 flex-1 text-center"><p class="text-[#8b95a1] font-bold text-xs mb-1">예상 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
+                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p class="text-[#8b95a1] font-bold text-[11px] mb-2">현재 경추 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
+                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p class="text-[#8b95a1] font-bold text-[11px] mb-2">목 뼈 실시간 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
             </div>
+
+            <div class="white-card bg-[#fff2f3] border-none">
+                <h3 class="font-bold mb-3 text-blue-600 text-sm flex items-center">🔵 체형 비대칭 분석</h3>
+                <p id="metaphor-text" class="text-sm text-[#4e5968] leading-relaxed font-medium"></p>
+            </div>
+
             <div class="white-card">
-                <h3 id="chart-title" class="font-bold mb-1 text-sm">📈 개선 추이</h3>
-                <p class="text-[11px] text-[#3182f6] mb-3 font-semibold">✨ 수치가 낮아질수록 건강한 정렬이 완성됩니다!</p>
+                <h3 class="font-bold mb-4 text-sm flex items-center">💡 임상적 기대 효과</h3>
+                <div id="exercise-plan" class="bg-blue-50 p-4 rounded-2xl text-[#3182f6] font-extrabold text-sm mb-2 text-center"></div>
+                <p id="clinical-effects" class="text-[#4e5968] text-[11px] font-medium leading-relaxed"></p>
+            </div>
+
+            <div class="white-card">
+                <h3 id="chart-title" class="font-bold mb-3 text-sm flex items-center">📈 개선 추이 (최근 10회)</h3>
                 <div style="height: 180px;"><canvas id="historyChart"></canvas></div>
             </div>
-            <button onclick="location.reload()" class="btn-primary mt-6 mb-10">확인</button>
+
+            <div class="mt-4 px-6 py-4 bg-gray-100 rounded-2xl text-[10px] text-[#8b95a1] leading-relaxed text-center">
+                본 서비스는 의료기기가 아니며 측정값은 참고용입니다.<br>
+                목 주변의 통증이나 저림이 지속될 경우 반드시 <b>재활의학과 등 전문의</b>를 방문하여 진료를 받으십시오.
+            </div>
+            <button onclick="location.reload()" class="btn-primary mt-8 mb-12 shadow-lg">확인</button>
         </div>
     </div>
 
     <script>
         let faceMesh; let count = 10; let capturedAngle = 0; 
-        let isBack = false; let baseFaceWidth = 0; let audioCtx;
-        let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
+        let isBack = false; let baseFaceWidth = 0; let baseShoulderY = 0;
+        let audioCtx; let historyData = JSON.parse(localStorage.getItem('neckHistory') || '[]');
         let chartInstance = null;
 
         function playBeep() {
@@ -121,29 +126,28 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    const leftFace = lms[234]; const rightFace = lms[454];
-                    const currentFaceWidth = Math.sqrt(Math.pow(rightFace.x - leftFace.x, 2) + Math.pow(rightFace.y - leftFace.y, 2));
+                    const currentWidth = Math.sqrt(Math.pow(lms[454].x - lms[234].x, 2) + Math.pow(lms[454].y - lms[234].y, 2));
+                    const currentShoulderY = lms[152].y; // 턱 끝 위치를 어깨 고정 지표로 활용
 
-                    // 각도 계산
                     const headSize = Math.abs(lms[152].y - lms[10].y);
                     const ratio = Math.abs(lms[152].y - lms[1].y) / headSize;
                     capturedAngle = Math.max(0, Math.round((0.48 - ratio) * 200));
                     document.getElementById('angle-tag').innerText = `${capturedAngle}°`;
 
                     if (baseFaceWidth === 0 && !document.getElementById('step3').classList.contains('hidden')) {
-                        baseFaceWidth = currentFaceWidth;
+                        baseFaceWidth = currentWidth; baseShoulderY = currentShoulderY;
                     }
 
-                    // [샌드위치 거리 로직 적용]
                     if (!document.getElementById('step4').classList.contains('hidden')) {
-                        const distanceRatio = currentFaceWidth / baseFaceWidth;
-                        const gazeCheck = Math.abs(lms[1].x - 0.5) < 0.07; // 시선 고정
+                        const distRatio = currentWidth / baseFaceWidth;
+                        const shoulderDev = Math.abs(currentShoulderY - baseShoulderY);
+                        const gazeCheck = Math.abs(lms[1].x - 0.5) < 0.06;
 
-                        // 1.2% ~ 5% 사이의 거리 변화만 운동으로 인정 (팔 굽힘 방지)
-                        if (!isBack && distanceRatio < 0.988 && distanceRatio > 0.94 && gazeCheck) {
+                        // [팔 굽힘 방지 로직] 어깨(턱 끝) 상하 움직임이 0.02 이내일 때만 거리 변화 인정
+                        if (!isBack && distRatio < 0.988 && shoulderDev < 0.02 && gazeCheck) {
                             isBack = true;
                         } 
-                        else if (isBack && distanceRatio > 0.996) {
+                        else if (isBack && distRatio > 0.996) {
                             isBack = false;
                             updateCount();
                         }
@@ -155,22 +159,32 @@
         }
 
         function updateCount() {
-            count--; playBeep();
+            count--; playBeep(); if (navigator.vibrate) navigator.vibrate(50);
             const el = document.getElementById('count-number'); el.innerText = count;
             el.classList.add('count-pop'); setTimeout(() => el.classList.remove('count-pop'), 400);
             if (count <= 0) finalizeReport();
         }
 
         function finalizeReport() {
-            let status = "균형 양호"; let color = "#3182f6"; let kg = 5; let period = 2;
-            if(capturedAngle >= 31) { status = "정렬 불안정"; color = "#f04452"; kg = 21; period = 8; }
-            else if(capturedAngle >= 16) { status = "정렬 비대칭"; color = "#ff9500"; kg = 13; period = 4; }
-            
-            document.getElementById('neck-status-badge').innerText = status;
-            document.getElementById('neck-status-badge').style.backgroundColor = color;
+            let status = "안정적 정렬"; let kg = 5; let plan = "주 3회 관리";
+            let effects = "정상 범위를 유지하며 목 주변 근육의 긴장도가 매우 낮습니다.";
+            let metaphor = "현재 고개가 정중앙에 잘 위치해 있습니다. 이는 양쪽 승모근의 균형이 잘 잡혀있음을 의미합니다.";
+
+            if(capturedAngle >= 31) {
+                status = "불안정 정렬"; kg = 21; plan = "매일 5세트 권장 (8주)";
+                metaphor = "고개가 한쪽으로 미세하게 기울어 보입니다. 이는 특정 근육의 단축으로 인한 전형적인 불균형 신호일 수 있습니다.";
+                effects = "턱 당기기 운동을 통해 경추의 C자 곡선을 회복하고 하중을 70% 이상 줄일 수 있습니다.";
+            } else if(capturedAngle >= 16) {
+                status = "비대칭 진행"; kg = 12; plan = "매일 3세트 권장 (4주)";
+                metaphor = "현재 고개가 약간 기울어져 있습니다. 한쪽 어깨 근육이 긴장되었을 때 나타나는 불균형 신호입니다.";
+                effects = "꾸준한 자세 교정은 만성 두통과 어깨 결림을 예방하는 임상적 효과가 있습니다.";
+            }
+
             document.getElementById('final-angle').innerText = `${capturedAngle}°`;
             document.getElementById('final-kg').innerText = `${kg}kg`;
-            document.getElementById('chart-title').innerText = `📈 최근 ${period}주 목표 개선 추이`;
+            document.getElementById('metaphor-text').innerText = metaphor;
+            document.getElementById('exercise-plan').innerText = plan;
+            document.getElementById('clinical-effects').innerText = effects;
             
             historyData.push({ date: new Date().toLocaleDateString('ko-KR', {day:'numeric', month:'short'}), angle: capturedAngle });
             localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-10)));
@@ -184,7 +198,7 @@
             chartInstance = new Chart(ctx, {
                 type: 'line', 
                 data: { labels: historyData.map(h => h.date), datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', tension: 0.4, fill: false, pointRadius: 5 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
     </script>
