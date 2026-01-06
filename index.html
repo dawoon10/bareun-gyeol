@@ -18,10 +18,14 @@
         .btn-normal-mode { background-color: white; color: #3182f6; border: 1px solid #e5e8eb; padding: 18px; font-size: 18px; }
         .btn-senior-mode { background-color: #3182f6; color: white; padding: 35px; font-size: 32px !important; box-shadow: 0 10px 20px rgba(49, 130, 246, 0.3); }
 
-        /* [가독성 개선] 큰 글씨 모드 텍스트 정렬 */
+        .btn-finish { width: 100%; border-radius: 24px; font-weight: 800; border: none; cursor: pointer; }
+        .senior-active .btn-finish { padding: 30px; font-size: 28px !important; background-color: #3182f6; color: white; }
+        body:not(.senior-active) .btn-finish { padding: 18px; font-size: 18px; background-color: #3182f6; color: white; }
+
+        /* 큰 글씨 모드 텍스트 최적화 */
         .senior-active .txt-main { font-size: 4.5rem !important; }
-        .senior-active .txt-sub { font-size: 2rem !important; }
-        .senior-active .guide-txt { font-size: 1.5rem !important; line-height: 1.4 !important; word-break: keep-all; padding: 0 10px; }
+        .senior-active .txt-sub { font-size: 2.2rem !important; }
+        .senior-active .guide-txt { font-size: 1.55rem !important; line-height: 1.4 !important; letter-spacing: -0.02em; word-break: keep-all; }
         .senior-active p, .senior-active h2, .senior-active h3, .senior-active div { font-size: 1.4rem !important; }
         .senior-active #count-number { font-size: 12rem !important; }
 
@@ -34,9 +38,6 @@
         @keyframes charChinTuck { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.85); } }
         
         #count-number { font-size: 9rem; line-height: 1; font-weight: 900; }
-        .count-pop { animation: countPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.4); color: #3182f6; } 100% { transform: scale(1); } }
-        
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
@@ -53,7 +54,7 @@
 
         <div id="step3" class="hidden text-center">
             <h2 class="txt-sub mb-2">자세 분석</h2>
-            <p class="guide-txt mb-6 text-[#3182f6] font-bold">휴대폰을 정면 눈높이에 맞추고<br>렌즈를 똑바로 바라보세요.</p>
+            <p class="guide-txt mb-6 text-[#3182f6] font-bold">휴대폰을 정면 눈높이로 들어주세요.</p>
             <div id="video-container" class="mb-8 shadow-2xl">
                 <video id="video" playsinline></video><canvas id="ai-canvas"></canvas>
                 <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div>
@@ -63,13 +64,13 @@
 
         <div id="step4" class="hidden flex flex-col items-center text-center">
             <h2 class="txt-sub mb-2">턱 당기기 운동</h2>
-            <p class="guide-txt text-[#3182f6] font-bold mb-4">팔을 정면으로 곧게 펴서 눈높이로 들고<br>렌즈를 보며 턱을 당겼다 돌아오세요.</p>
+            <p class="guide-txt text-[#3182f6] font-bold mb-4">팔을 쭉 펴서 눈높이로 들고,<br>턱을 당겼다 돌아오세요.</p>
             <div class="character-box"><div class="char-head"></div><div class="char-body"></div></div>
             <div class="white-card py-10"><div id="count-number" class="text-[#191f28]">10</div><p class="txt-sub font-bold mt-2 text-[#8b95a1]">남은 횟수</p></div>
         </div>
 
         <div id="step5" class="hidden">
-            <h2 class="txt-sub text-center mb-6">진단 리포트</h2>
+            <h2 class="txt-sub text-center mb-6">정밀 진단 리포트</h2>
             <div class="flex gap-4 mb-4">
                 <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">현재 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
                 <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">목 뼈 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
@@ -87,7 +88,7 @@
                 <h3 class="font-bold mb-1">📈 개선 추이</h3>
                 <div style="height: 180px;"><canvas id="historyChart"></canvas></div>
             </div>
-            <button onclick="location.reload()" class="main-btn btn-senior-mode" style="padding: 20px; font-size: 20px;">기록 저장 및 종료</button>
+            <button onclick="location.reload()" class="btn-finish">기록 저장 및 종료</button>
         </div>
     </div>
 
@@ -122,7 +123,7 @@
             
             if(!faceMesh) {
                 faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
-                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.8 });
+                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.7 });
                 faceMesh.onResults((results) => {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
@@ -131,10 +132,6 @@
                         const headLen = Math.abs(lms[152].y - lms[10].y);
                         capturedAngle = Math.max(0, Math.round((0.48 - (Math.abs(lms[152].y - lms[1].y) / headLen)) * 200));
                         document.getElementById('angle-tag').innerText = `${capturedAngle}°`;
-
-                        // [인식 밸런스 조정] 시선 감도를 0.015로 완화하여 "안되는 현상" 해결
-                        const eyeMidX = (lms[468].x + lms[473].x) / 2;
-                        const isGazing = Math.abs(eyeMidX - lms[1].x) < 0.015;
 
                         if (baseFaceWidth === 0 && !document.getElementById('step3').classList.contains('hidden')) {
                             baseFaceWidth = curW;
@@ -145,14 +142,13 @@
                             const now = Date.now();
 
                             if (exerciseState === "READY") {
-                                if (smoothDist < 0.992 && isGazing) { // 시작 감도 소폭 완화
+                                if (smoothDist < 0.992) {
                                     exerciseState = "IN_PROGRESS";
                                     lastStateChangeTime = now;
                                 }
                             } 
                             else if (exerciseState === "IN_PROGRESS") {
-                                if (!isGazing) { exerciseState = "READY"; return; }
-                                if (smoothDist >= 0.998) { // 복귀 지점 최적화
+                                if (smoothDist >= 0.998) {
                                     if (now - lastStateChangeTime > 500) {
                                         exerciseState = "READY";
                                         updateCount();
@@ -175,7 +171,6 @@
             g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1);
             b.start(); b.stop(audioCtx.currentTime+0.1);
             const el = document.getElementById('count-number'); el.innerText = count;
-            el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop');
             if (count <= 0) finalizeReport();
         }
 
@@ -187,7 +182,7 @@
             let metaphor = ""; let effects = ""; let period = "";
             if(capturedAngle <= 15) {
                 metaphor = "정상 정렬 상태입니다. 지금처럼 유지하세요.";
-                effects = "경추 C자 커브 보존으로 신경 흐름이 원활하며, 목 디스크 발생률을 크게 낮춰줍니다.";
+                effects = "경추 C자 커브 보존으로 신경 흐름이 원활하며, 목 디스크 발생률을 낮춰줍니다.";
                 period = "2주 유지";
                 document.getElementById('pres-goal').innerText = "12회 × 3세트";
             } else if(capturedAngle <= 25) {
