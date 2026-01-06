@@ -43,13 +43,27 @@
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
+        
+        /* 기능 설명 섹션 스타일 */
+        .feature-item { color: #4e5968; font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .senior-active .feature-item { font-size: 1.6rem !important; margin-bottom: 12px; }
     </style>
 </head>
 <body id="app-body">
     <div id="main-container" class="w-full max-w-md mx-auto p-4">
         <div id="step1" class="flex flex-col pt-12">
             <h1 class="txt-main mb-4 text-[#3182f6]">바른결</h1>
-            <p class="txt-sub mb-20 text-[#4e5968]">정갈한 자세가<br>바른 숨을 만듭니다.</p>
+            <p class="txt-sub mb-8 text-[#4e5968]">정갈한 자세가<br>바른 숨을 만듭니다.</p>
+            
+            <div class="mb-12">
+                <div class="feature-item">
+                    <span style="color: #3182f6;">🔹</span> AI 실시간 자세 분석
+                </div>
+                <div class="feature-item">
+                    <span style="color: #3182f6;">🔹</span> 기록이 남지 않는 안심 분석
+                </div>
+            </div>
+
             <button onclick="startApp('normal')" class="main-btn btn-normal-mode">기본 모드 시작</button>
             <button onclick="startApp('senior')" class="main-btn btn-senior-mode">큰 글씨 모드 시작</button>
         </div>
@@ -96,6 +110,7 @@
     </div>
 
     <script>
+        // 분석, 운동, 리포트 로직 절대 고정
         let faceMesh; let camera; let audioCtx;
         let count = 10; let capturedAngle = 0;
         let baseFaceWidth = 0; let exerciseState = "READY";
