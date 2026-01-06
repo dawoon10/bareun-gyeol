@@ -14,21 +14,20 @@
         .white-card { background: white; border-radius: 32px; padding: 24px; width: 100%; margin-bottom: 16px; box-sizing: border-box; }
         .hidden { display: none !important; }
 
-        /* 첫 화면 버튼 크기 차별화 */
-        .main-btn { width: 100%; border-radius: 24px; font-weight: 800; border: none; cursor: pointer; display: block; margin-bottom: 16px; transition: 0.2s; }
+        .main-btn { width: 100%; border-radius: 24px; font-weight: 800; border: none; cursor: pointer; display: block; margin-bottom: 16px; }
         .btn-normal-mode { background-color: white; color: #3182f6; border: 1px solid #e5e8eb; padding: 18px; font-size: 18px; }
         .btn-senior-mode { background-color: #3182f6; color: white; padding: 35px; font-size: 32px !important; box-shadow: 0 10px 20px rgba(49, 130, 246, 0.3); }
 
-        /* 큰 글씨 모드 전역 스타일 */
+        /* [가독성 개선] 큰 글씨 모드 텍스트 정렬 */
         .senior-active .txt-main { font-size: 4.5rem !important; }
-        .senior-active .txt-sub { font-size: 2.2rem !important; }
-        .senior-active p, .senior-active h2, .senior-active h3, .senior-active div { font-size: 1.6rem !important; }
-        .senior-active #count-number { font-size: 13rem !important; }
+        .senior-active .txt-sub { font-size: 2rem !important; }
+        .senior-active .guide-txt { font-size: 1.5rem !important; line-height: 1.4 !important; word-break: keep-all; padding: 0 10px; }
+        .senior-active p, .senior-active h2, .senior-active h3, .senior-active div { font-size: 1.4rem !important; }
+        .senior-active #count-number { font-size: 12rem !important; }
 
         .txt-main { font-size: 2.8rem; font-weight: 800; line-height: 1.1; }
         .txt-sub { font-size: 1.4rem; font-weight: 700; }
         
-        /* 캐릭터 애니메이션 */
         .character-box { width: 100px; height: 120px; position: relative; margin: 1.5rem auto; }
         .char-head { width: 60px; height: 60px; background: #ffdbac; border-radius: 50%; margin: 0 auto; animation: charChinTuck 3s infinite ease-in-out; }
         .char-body { width: 80px; height: 60px; background: #3182f6; border-radius: 20px; margin: -15px auto 0; opacity: 0.9; }
@@ -54,7 +53,7 @@
 
         <div id="step3" class="hidden text-center">
             <h2 class="txt-sub mb-2">자세 분석</h2>
-            <p class="mb-6 text-[#3182f6] font-bold">휴대폰을 정면 눈높이에 맞추고<br>렌즈를 똑바로 바라보세요.</p>
+            <p class="guide-txt mb-6 text-[#3182f6] font-bold">휴대폰을 정면 눈높이에 맞추고<br>렌즈를 똑바로 바라보세요.</p>
             <div id="video-container" class="mb-8 shadow-2xl">
                 <video id="video" playsinline></video><canvas id="ai-canvas"></canvas>
                 <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div>
@@ -64,7 +63,7 @@
 
         <div id="step4" class="hidden flex flex-col items-center text-center">
             <h2 class="txt-sub mb-2">턱 당기기 운동</h2>
-            <p class="text-[#3182f6] font-bold mb-4">팔을 정면으로 곧게 펴서 눈높이로 들고<br>렌즈를 보며 턱을 당겼다 돌아오세요.</p>
+            <p class="guide-txt text-[#3182f6] font-bold mb-4">팔을 정면으로 곧게 펴서 눈높이로 들고<br>렌즈를 보며 턱을 당겼다 돌아오세요.</p>
             <div class="character-box"><div class="char-head"></div><div class="char-body"></div></div>
             <div class="white-card py-10"><div id="count-number" class="text-[#191f28]">10</div><p class="txt-sub font-bold mt-2 text-[#8b95a1]">남은 횟수</p></div>
         </div>
@@ -109,7 +108,6 @@
             if(camera) { await camera.stop(); camera = null; }
             if(mode === 'senior') document.getElementById('app-body').classList.add('senior-active');
             else document.getElementById('app-body').classList.remove('senior-active');
-            
             count = 10; baseFaceWidth = 0; exerciseState = "READY";
             document.getElementById('count-number').innerText = count;
             if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -134,10 +132,9 @@
                         capturedAngle = Math.max(0, Math.round((0.48 - (Math.abs(lms[152].y - lms[1].y) / headLen)) * 200));
                         document.getElementById('angle-tag').innerText = `${capturedAngle}°`;
 
-                        // [최종 시선 필터] 코 중심점 대비 눈동자 수평 위치를 극도로 정밀하게 체크
+                        // [인식 밸런스 조정] 시선 감도를 0.015로 완화하여 "안되는 현상" 해결
                         const eyeMidX = (lms[468].x + lms[473].x) / 2;
-                        const gazeDiff = Math.abs(eyeMidX - lms[1].x);
-                        const isGazing = gazeDiff < 0.007; // 0.007 미만으로 더욱 강화
+                        const isGazing = Math.abs(eyeMidX - lms[1].x) < 0.015;
 
                         if (baseFaceWidth === 0 && !document.getElementById('step3').classList.contains('hidden')) {
                             baseFaceWidth = curW;
@@ -148,17 +145,15 @@
                             const now = Date.now();
 
                             if (exerciseState === "READY") {
-                                // 정면 응시 + 거리 좁혀짐(턱 당기기) 감지 시 시작
-                                if (smoothDist < 0.988 && isGazing) {
+                                if (smoothDist < 0.992 && isGazing) { // 시작 감도 소폭 완화
                                     exerciseState = "IN_PROGRESS";
                                     lastStateChangeTime = now;
                                 }
                             } 
                             else if (exerciseState === "IN_PROGRESS") {
-                                // 운동 중 시선을 떼면 즉시 리셋
                                 if (!isGazing) { exerciseState = "READY"; return; }
-                                if (smoothDist >= 0.997 && smoothDist <= 1.003) {
-                                    if (now - lastStateChangeTime > 600) {
+                                if (smoothDist >= 0.998) { // 복귀 지점 최적화
+                                    if (now - lastStateChangeTime > 500) {
                                         exerciseState = "READY";
                                         updateCount();
                                     }
