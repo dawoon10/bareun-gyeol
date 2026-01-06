@@ -22,10 +22,9 @@
         .senior-active .btn-finish { padding: 30px; font-size: 28px !important; background-color: #3182f6; color: white; }
         body:not(.senior-active) .btn-finish { padding: 18px; font-size: 18px; background-color: #3182f6; color: white; }
 
-        /* 큰 글씨 모드 텍스트 최적화 */
         .senior-active .txt-main { font-size: 4.5rem !important; }
         .senior-active .txt-sub { font-size: 2.2rem !important; }
-        .senior-active .guide-txt { font-size: 1.55rem !important; line-height: 1.4 !important; letter-spacing: -0.02em; word-break: keep-all; }
+        .senior-active .guide-txt { font-size: 1.6rem !important; line-height: 1.4 !important; }
         .senior-active p, .senior-active h2, .senior-active h3, .senior-active div { font-size: 1.4rem !important; }
         .senior-active #count-number { font-size: 12rem !important; }
 
@@ -37,7 +36,10 @@
         .char-body { width: 80px; height: 60px; background: #3182f6; border-radius: 20px; margin: -15px auto 0; opacity: 0.9; }
         @keyframes charChinTuck { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.85); } }
         
-        #count-number { font-size: 9rem; line-height: 1; font-weight: 900; }
+        #count-number { font-size: 9rem; line-height: 1; font-weight: 900; display: inline-block; }
+        .count-pop { animation: countPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.4); color: #3182f6; } 100% { transform: scale(1); } }
+        
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
@@ -53,13 +55,13 @@
         </div>
 
         <div id="step3" class="hidden text-center">
-            <h2 class="txt-sub mb-2">자세 분석</h2>
+            <h2 class="txt-sub mb-2">상태 측정</h2>
             <p class="guide-txt mb-6 text-[#3182f6] font-bold">휴대폰을 정면 눈높이로 들어주세요.</p>
             <div id="video-container" class="mb-8 shadow-2xl">
                 <video id="video" playsinline></video><canvas id="ai-canvas"></canvas>
                 <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div>
             </div>
-            <div id="analysis-finish" class="hidden"><button onclick="showStep(4)" class="main-btn btn-senior-mode" style="padding: 20px; font-size: 20px;">운동 시작</button></div>
+            <div id="analysis-finish" class="hidden"><button onclick="showStep(4)" class="main-btn btn-senior-mode" style="padding: 20px; font-size: 20px;">운동 가이드 시작</button></div>
         </div>
 
         <div id="step4" class="hidden flex flex-col items-center text-center">
@@ -70,23 +72,24 @@
         </div>
 
         <div id="step5" class="hidden">
-            <h2 class="txt-sub text-center mb-6">정밀 진단 리포트</h2>
+            <h2 class="txt-sub text-center mb-6">정밀 분석 리포트</h2>
             <div class="flex gap-4 mb-4">
                 <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">현재 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
-                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">목 뼈 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
+                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">목 가중 무게</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
             </div>
-            <div class="white-card bg-[#fff2f3] border-none"><h3 class="font-bold mb-3 text-blue-600">🔵 체형 분석 결과</h3><p id="metaphor-text" class="leading-relaxed"></p></div>
+            <div class="white-card bg-[#fff2f3] border-none"><h3 class="font-bold mb-3 text-blue-600">🔵 습관 분석 결과</h3><p id="metaphor-text" class="leading-relaxed"></p></div>
             <div class="white-card">
-                <h3 class="font-bold mb-4">💡 오늘의 추천 활동</h3>
+                <h3 class="font-bold mb-4">💡 추천 관리 활동</h3>
                 <div class="grid grid-cols-2 gap-2 mb-4 text-center">
-                    <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size: 10px;">권장 기간</p><p id="pres-period" class="font-bold text-blue-600">--</p></div>
-                    <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size: 10px;">목표 강도</p><p id="pres-goal" class="font-bold text-blue-600">--회 × --세트</p></div>
+                    <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size: 10px;">관리 기간</p><p id="recom-period" class="font-bold text-blue-600">--</p></div>
+                    <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size: 10px;">권장 목표</p><p id="recom-goal" class="font-bold text-blue-600">--회 × --세트</p></div>
                 </div>
-                <h4 class="font-bold mb-1 text-gray-500" style="font-size: 12px;">✨ 기대 효과</h4><p id="clinical-effects" class="text-gray-600 leading-relaxed"></p>
+                <h4 class="font-bold mb-1 text-gray-500" style="font-size: 12px;">✨ 기대 변화</h4><p id="clinical-effects" class="text-gray-600 leading-relaxed"></p>
             </div>
             <div class="white-card">
                 <h3 class="font-bold mb-1">📈 개선 추이</h3>
                 <div style="height: 180px;"><canvas id="historyChart"></canvas></div>
+                <p class="text-center text-gray-400 mt-6 leading-relaxed px-2" style="font-size: 12px; word-break: keep-all;">💡 <b>그래프가 아래로 향할수록</b> 당신의 목은 더 바르게 정렬되고 있습니다.</p>
             </div>
             <button onclick="location.reload()" class="btn-finish">기록 저장 및 종료</button>
         </div>
@@ -170,7 +173,13 @@
             b.connect(g); g.connect(audioCtx.destination); b.frequency.value = 800;
             g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1);
             b.start(); b.stop(audioCtx.currentTime+0.1);
-            const el = document.getElementById('count-number'); el.innerText = count;
+            
+            const el = document.getElementById('count-number'); 
+            el.innerText = count;
+            el.classList.remove('count-pop');
+            void el.offsetWidth;
+            el.classList.add('count-pop');
+
             if (count <= 0) finalizeReport();
         }
 
@@ -181,24 +190,24 @@
             
             let metaphor = ""; let effects = ""; let period = "";
             if(capturedAngle <= 15) {
-                metaphor = "정상 정렬 상태입니다. 지금처럼 유지하세요.";
-                effects = "경추 C자 커브 보존으로 신경 흐름이 원활하며, 목 디스크 발생률을 낮춰줍니다.";
-                period = "2주 유지";
-                document.getElementById('pres-goal').innerText = "12회 × 3세트";
+                metaphor = "바른 정렬 상태입니다. 좋은 습관을 유지 중이시네요!";
+                effects = "피로 없는 목과 어깨, 가벼운 일상을 유지하는 힘이 됩니다.";
+                period = "2주 케어";
+                document.getElementById('recom-goal').innerText = "12회 × 3세트";
             } else if(capturedAngle <= 25) {
-                metaphor = "거북목 초기로 근육 긴장이 관찰됩니다.";
-                effects = "승모근 과활성화를 막아 어깨 통증과 만성 두통을 해소하는 효과가 있습니다.";
-                period = "4주 교정";
-                document.getElementById('pres-goal').innerText = "12회 × 4세트";
+                metaphor = "자세가 조금 앞으로 기울어져 있습니다. 세심한 관리가 필요해요.";
+                effects = "굳어있던 뒷목이 풀리며 머리까지 맑아지는 시원함을 선사합니다.";
+                period = "4주 케어";
+                document.getElementById('recom-goal').innerText = "12회 × 4세트";
             } else {
-                metaphor = "거북목이 심해 적극적 교정이 필요합니다.";
-                effects = "신경 압박을 해소하여 팔 저림을 개선하고 목의 퇴행성 변화를 방지합니다.";
-                period = "8주 집중";
-                document.getElementById('pres-goal').innerText = "15회 × 5세트";
+                metaphor = "기울임이 큰 상태입니다. 꾸준한 습관 개선이 중요합니다.";
+                effects = "지속적인 습관 케어를 통해 목에 실리는 무게를 줄여주고 한결 편안한 상체를 만듭니다.";
+                period = "8주 집중 케어";
+                document.getElementById('recom-goal').innerText = "15회 × 5세트";
             }
             document.getElementById('metaphor-text').innerText = metaphor;
             document.getElementById('clinical-effects').innerText = effects;
-            document.getElementById('pres-period').innerText = period;
+            document.getElementById('recom-period').innerText = period;
             
             historyData.push({ date: new Date().toLocaleDateString('ko-KR', {day:'numeric', month:'short'}), angle: capturedAngle });
             localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-10)));
@@ -211,7 +220,7 @@
             chartInstance = new Chart(ctx, {
                 type: 'line', 
                 data: { labels: historyData.map(h => h.date), datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', tension: 0.4, fill: false, pointRadius: 5 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
     </script>
