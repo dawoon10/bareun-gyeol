@@ -14,8 +14,8 @@
         .white-card { background: white; border-radius: 32px; padding: 24px; width: 100%; margin-bottom: 16px; box-sizing: border-box; }
         .hidden { display: none !important; }
 
-        /* [핵심] 첫 화면 버튼 크기 절대 고정 */
-        .main-btn { width: 100%; border-radius: 24px; font-weight: 800; border: none; cursor: pointer; display: block; margin-bottom: 16px; }
+        /* 첫 화면 버튼 크기 차별화 */
+        .main-btn { width: 100%; border-radius: 24px; font-weight: 800; border: none; cursor: pointer; display: block; margin-bottom: 16px; transition: 0.2s; }
         .btn-normal-mode { background-color: white; color: #3182f6; border: 1px solid #e5e8eb; padding: 18px; font-size: 18px; }
         .btn-senior-mode { background-color: #3182f6; color: white; padding: 35px; font-size: 32px !important; box-shadow: 0 10px 20px rgba(49, 130, 246, 0.3); }
 
@@ -24,12 +24,11 @@
         .senior-active .txt-sub { font-size: 2.2rem !important; }
         .senior-active p, .senior-active h2, .senior-active h3, .senior-active div { font-size: 1.6rem !important; }
         .senior-active #count-number { font-size: 13rem !important; }
-        .senior-active .report-label { font-size: 14px !important; }
 
         .txt-main { font-size: 2.8rem; font-weight: 800; line-height: 1.1; }
         .txt-sub { font-size: 1.4rem; font-weight: 700; }
         
-        /* 캐릭터 및 카운팅 */
+        /* 캐릭터 애니메이션 */
         .character-box { width: 100px; height: 120px; position: relative; margin: 1.5rem auto; }
         .char-head { width: 60px; height: 60px; background: #ffdbac; border-radius: 50%; margin: 0 auto; animation: charChinTuck 3s infinite ease-in-out; }
         .char-body { width: 80px; height: 60px; background: #3182f6; border-radius: 20px; margin: -15px auto 0; opacity: 0.9; }
@@ -49,13 +48,13 @@
         <div id="step1" class="flex flex-col pt-12">
             <h1 class="txt-main mb-4 text-[#3182f6]">바른결</h1>
             <p class="txt-sub mb-20 text-[#4e5968]">정갈한 자세가<br>바른 숨을 만듭니다.</p>
-            <button onclick="startApp('senior')" class="main-btn btn-senior-mode">큰 글씨 모드 시작</button>
             <button onclick="startApp('normal')" class="main-btn btn-normal-mode">기본 모드 시작</button>
+            <button onclick="startApp('senior')" class="main-btn btn-senior-mode">큰 글씨 모드 시작</button>
         </div>
 
         <div id="step3" class="hidden text-center">
             <h2 class="txt-sub mb-2">자세 분석</h2>
-            <p class="mb-6 text-[#3182f6] font-bold">눈동자를 카메라 렌즈에<br>정확히 맞춰주세요.</p>
+            <p class="mb-6 text-[#3182f6] font-bold">휴대폰을 정면 눈높이에 맞추고<br>렌즈를 똑바로 바라보세요.</p>
             <div id="video-container" class="mb-8 shadow-2xl">
                 <video id="video" playsinline></video><canvas id="ai-canvas"></canvas>
                 <div id="angle-tag" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white px-8 py-3 rounded-2xl font-black text-blue-600 shadow-xl z-20 text-3xl">0°</div>
@@ -65,7 +64,7 @@
 
         <div id="step4" class="hidden flex flex-col items-center text-center">
             <h2 class="txt-sub mb-2">턱 당기기 운동</h2>
-            <p class="text-[#3182f6] font-bold mb-4">렌즈를 보며 턱을 당겼다가<br>제자리로 돌아오세요.</p>
+            <p class="text-[#3182f6] font-bold mb-4">팔을 정면으로 곧게 펴서 눈높이로 들고<br>렌즈를 보며 턱을 당겼다 돌아오세요.</p>
             <div class="character-box"><div class="char-head"></div><div class="char-body"></div></div>
             <div class="white-card py-10"><div id="count-number" class="text-[#191f28]">10</div><p class="txt-sub font-bold mt-2 text-[#8b95a1]">남은 횟수</p></div>
         </div>
@@ -73,22 +72,20 @@
         <div id="step5" class="hidden">
             <h2 class="txt-sub text-center mb-6">진단 리포트</h2>
             <div class="flex gap-4 mb-4">
-                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p class="report-label font-bold text-[#8b95a1] mb-2" style="font-size: 12px;">현재 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
-                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p class="report-label font-bold text-[#8b95a1] mb-2" style="font-size: 12px;">목 뼈 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
+                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">현재 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
+                <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size: 12px;" class="font-bold text-[#8b95a1] mb-2">목 뼈 하중</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
             </div>
             <div class="white-card bg-[#fff2f3] border-none"><h3 class="font-bold mb-3 text-blue-600">🔵 체형 분석 결과</h3><p id="metaphor-text" class="leading-relaxed"></p></div>
             <div class="white-card">
-                <h3 class="font-bold mb-4">💡 운동 처방</h3>
-                <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-                    <div class="bg-gray-50 p-3 rounded-xl"><p class="report-label" style="font-size: 10px;">권장 기간</p><p id="pres-period" class="font-bold text-blue-600">--</p></div>
-                    <div class="bg-gray-50 p-3 rounded-xl"><p class="report-label" style="font-size: 10px;">횟수</p><p id="pres-reps" class="font-bold text-blue-600">12회</p></div>
-                    <div class="bg-gray-50 p-3 rounded-xl"><p class="report-label" style="font-size: 10px;">세트</p><p id="pres-sets" class="font-bold text-blue-600">3세트</p></div>
+                <h3 class="font-bold mb-4">💡 오늘의 추천 활동</h3>
+                <div class="grid grid-cols-2 gap-2 mb-4 text-center">
+                    <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size: 10px;">권장 기간</p><p id="pres-period" class="font-bold text-blue-600">--</p></div>
+                    <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size: 10px;">목표 강도</p><p id="pres-goal" class="font-bold text-blue-600">--회 × --세트</p></div>
                 </div>
-                <h4 class="font-bold mb-1 text-gray-500" style="font-size: 12px;">✨ 임상적 기대 효과</h4><p id="clinical-effects" class="text-gray-600 leading-relaxed"></p>
+                <h4 class="font-bold mb-1 text-gray-500" style="font-size: 12px;">✨ 기대 효과</h4><p id="clinical-effects" class="text-gray-600 leading-relaxed"></p>
             </div>
             <div class="white-card">
                 <h3 class="font-bold mb-1">📈 개선 추이</h3>
-                <p class="text-[#3182f6] mb-3 font-semibold" style="font-size: 11px;">✨ 수치가 낮아질수록 정렬이 좋아집니다!</p>
                 <div style="height: 180px;"><canvas id="historyChart"></canvas></div>
             </div>
             <button onclick="location.reload()" class="main-btn btn-senior-mode" style="padding: 20px; font-size: 20px;">기록 저장 및 종료</button>
@@ -109,15 +106,12 @@
         }
 
         async function startApp(mode) {
-            // 카메라와 AI 세션이 이미 있다면 종료 (인식률 저하 방지)
             if(camera) { await camera.stop(); camera = null; }
-            
             if(mode === 'senior') document.getElementById('app-body').classList.add('senior-active');
             else document.getElementById('app-body').classList.remove('senior-active');
             
             count = 10; baseFaceWidth = 0; exerciseState = "READY";
             document.getElementById('count-number').innerText = count;
-            
             if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             initAI();
         }
@@ -140,12 +134,10 @@
                         capturedAngle = Math.max(0, Math.round((0.48 - (Math.abs(lms[152].y - lms[1].y) / headLen)) * 200));
                         document.getElementById('angle-tag').innerText = `${capturedAngle}°`;
 
-                        // [업그레이드 시선 필터] 눈동자 중심점과 홍채 끝점 비율 계산
-                        const leftIris = lms[468]; const rightIris = lms[473];
-                        const noseBridge = lms[1];
-                        // 시선 수평 편차 계산 (0.012 이하일 때만 정면으로 간주 - 매우 엄격)
-                        const gazeDiff = Math.abs(((leftIris.x + rightIris.x) / 2) - noseBridge.x);
-                        const isGazing = gazeDiff < 0.012;
+                        // [최종 시선 필터] 코 중심점 대비 눈동자 수평 위치를 극도로 정밀하게 체크
+                        const eyeMidX = (lms[468].x + lms[473].x) / 2;
+                        const gazeDiff = Math.abs(eyeMidX - lms[1].x);
+                        const isGazing = gazeDiff < 0.007; // 0.007 미만으로 더욱 강화
 
                         if (baseFaceWidth === 0 && !document.getElementById('step3').classList.contains('hidden')) {
                             baseFaceWidth = curW;
@@ -156,13 +148,14 @@
                             const now = Date.now();
 
                             if (exerciseState === "READY") {
+                                // 정면 응시 + 거리 좁혀짐(턱 당기기) 감지 시 시작
                                 if (smoothDist < 0.988 && isGazing) {
                                     exerciseState = "IN_PROGRESS";
                                     lastStateChangeTime = now;
                                 }
                             } 
                             else if (exerciseState === "IN_PROGRESS") {
-                                // 운동 중 시선을 돌리면 즉시 초기화
+                                // 운동 중 시선을 떼면 즉시 리셋
                                 if (!isGazing) { exerciseState = "READY"; return; }
                                 if (smoothDist >= 0.997 && smoothDist <= 1.003) {
                                     if (now - lastStateChangeTime > 600) {
@@ -175,7 +168,6 @@
                     }
                 });
             }
-            
             camera = new Camera(video, { onFrame: async () => { await faceMesh.send({image: video}); }, width: 640, height: 480 });
             camera.start();
             setTimeout(() => { document.getElementById('analysis-finish').classList.remove('hidden'); }, 3000);
@@ -197,27 +189,26 @@
             document.getElementById('final-angle').innerText = `${capturedAngle}°`;
             document.getElementById('final-kg').innerText = `${Math.round(capturedAngle * 0.4 + 5)}kg`;
             
-            let metaphor = ""; let effects = ""; let period = ""; let sets = "3세트";
+            let metaphor = ""; let effects = ""; let period = "";
             if(capturedAngle <= 15) {
                 metaphor = "정상 정렬 상태입니다. 지금처럼 유지하세요.";
                 effects = "경추 C자 커브 보존으로 신경 흐름이 원활하며, 목 디스크 발생률을 크게 낮춰줍니다.";
                 period = "2주 유지";
+                document.getElementById('pres-goal').innerText = "12회 × 3세트";
             } else if(capturedAngle <= 25) {
                 metaphor = "거북목 초기로 근육 긴장이 관찰됩니다.";
-                effects = "승모근 과활성화를 막아 어깨 통증과 만성 두통을 해소하는 임상적 효과가 있습니다.";
+                effects = "승모근 과활성화를 막아 어깨 통증과 만성 두통을 해소하는 효과가 있습니다.";
                 period = "4주 교정";
-                sets = "4세트";
+                document.getElementById('pres-goal').innerText = "12회 × 4세트";
             } else {
-                metaphor = "거북목이 심해 교정이 시급합니다.";
-                effects = "심부 굴곡근 강화로 신경 압박을 해소하고 목의 퇴행성 변화를 방지합니다.";
+                metaphor = "거북목이 심해 적극적 교정이 필요합니다.";
+                effects = "신경 압박을 해소하여 팔 저림을 개선하고 목의 퇴행성 변화를 방지합니다.";
                 period = "8주 집중";
-                sets = "5세트";
+                document.getElementById('pres-goal').innerText = "15회 × 5세트";
             }
-            
             document.getElementById('metaphor-text').innerText = metaphor;
             document.getElementById('clinical-effects').innerText = effects;
             document.getElementById('pres-period').innerText = period;
-            document.getElementById('pres-sets').innerText = sets;
             
             historyData.push({ date: new Date().toLocaleDateString('ko-KR', {day:'numeric', month:'short'}), angle: capturedAngle });
             localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-10)));
