@@ -25,25 +25,23 @@
         .btn-normal-mode { background-color: white; color: #3182f6; border: 1px solid #e5e8eb; padding: 20px; font-size: 18px; }
         .btn-senior-mode { background-color: #3182f6; color: white; padding: 32px; font-size: 28px !important; box-shadow: 0 8px 16px rgba(49, 130, 246, 0.2); }
 
-        /* 운동 애니메이션 (복구) */
+        /* 운동 카운트 애니메이션 */
         #count-number { font-size: 9rem; line-height: 1; font-weight: 900; display: inline-block; }
         .count-pop { animation: countPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
         @keyframes countPop { 0% { transform: scale(1); } 50% { transform: scale(1.4); color: #3182f6; } 100% { transform: scale(1); } }
         
+        /* 캐릭터 애니메이션 */
         .character-box { width: 100px; height: 120px; position: relative; margin: 1.5rem auto; }
         .char-head { width: 60px; height: 60px; background: #ffdbac; border-radius: 50%; margin: 0 auto; animation: charChinTuck 3s infinite ease-in-out; }
         .char-body { width: 80px; height: 60px; background: #3182f6; border-radius: 20px; margin: -15px auto 0; opacity: 0.9; }
         @keyframes charChinTuck { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.85); } }
 
-        /* 카메라 (고정) */
+        /* 비디오 컨테이너 */
         #video-container { position: relative; width: 100%; aspect-ratio: 3/4; border-radius: 32px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
 
-        /* 큰 글씨 모드 */
-        .senior-active .txt-main { font-size: 4.5rem !important; }
-        .senior-active .txt-sub { font-size: 2.2rem !important; }
-        .senior-active .feature-text { font-size: 1.6rem !important; }
+        .medical-disclaimer { font-size: 11px; color: #8b95a1; text-align: center; margin-top: 24px; line-height: 1.6; word-break: keep-all; }
     </style>
 </head>
 <body>
@@ -54,8 +52,8 @@
             <p class="txt-sub mb-8">바른 숨을 만듭니다.</p>
             
             <div class="mb-10">
-                <div class="feature-card"><span style="font-size:1.4rem">✨</span><span class="feature-text">AI 실시간 자세 분석</span></div>
-                <div class="feature-card"><span style="font-size:1.4rem">🛡️</span><span class="feature-text">기록이 남지 않는 안심 분석</span></div>
+                <div class="feature-card"><span>✨</span><span class="feature-text">AI 실시간 자세 분석</span></div>
+                <div class="feature-card"><span>🛡️</span><span class="feature-text">기록이 남지 않는 안심 분석</span></div>
             </div>
 
             <button onclick="startApp('normal')" class="main-btn btn-normal-mode">기본 모드 시작</button>
@@ -79,26 +77,28 @@
             <div class="white-card py-10"><div id="count-number" class="text-[#191f28]">10</div><p class="txt-sub font-bold mt-2 text-[#8b95a1]">남은 횟수</p></div>
         </div>
 
-        <div id="step5" class="hidden pt-6">
+        <div id="step5" class="hidden pt-6 pb-12">
             <h2 class="txt-sub text-center mb-6">정밀 분석 리포트</h2>
             <div class="flex gap-4 mb-4">
                 <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size:12px;" class="font-bold text-[#8b95a1] mb-2">현재 각도</p><p id="final-angle" class="text-3xl font-black">--°</p></div>
                 <div class="white-card !mb-0 flex-1 text-center bg-[#f8f9fa] border-none"><p style="font-size:12px;" class="font-bold text-[#8b95a1] mb-2">목 가중 무게</p><p id="final-kg" class="text-3xl font-black text-[#f04452]">--kg</p></div>
             </div>
-            <div class="white-card bg-[#fff2f3] border-none"><h3 class="font-bold mb-3 text-blue-600">🔵 습관 분석 결과</h3><p id="metaphor-text"></p></div>
+            <div class="white-card bg-[#fff2f3] border-none"><h3 class="font-bold mb-3 text-blue-600">🔵 습관 분석 결과</h3><p id="metaphor-text" class="leading-relaxed"></p></div>
             <div class="white-card">
                 <h3 class="font-bold mb-4">💡 추천 관리 활동</h3>
                 <div class="grid grid-cols-2 gap-2 mb-4 text-center">
                     <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size:10px;">관리 기간</p><p id="recom-period" class="font-bold text-blue-600">--</p></div>
                     <div class="bg-gray-50 p-4 rounded-xl"><p style="font-size:10px;">권장 목표</p><p id="recom-goal" class="font-bold text-blue-600">--회 × --세트</p></div>
                 </div>
-                <p id="clinical-effects" class="text-gray-600 text-sm"></p>
+                <h4 class="font-bold mb-1 text-gray-500" style="font-size: 12px;">✨ 기대 변화</h4><p id="clinical-effects" class="text-gray-600 leading-relaxed"></p>
             </div>
             <div class="white-card">
-                <h3 class="font-bold mb-1">📈 개선 추이</h3>
+                <h3 class="font-bold mb-1">📈 각도별 개선 추이</h3>
                 <div style="height: 180px;"><canvas id="historyChart"></canvas></div>
+                <p class="text-center text-gray-400 mt-6 leading-relaxed px-2" style="font-size: 12px; word-break: keep-all;">💡 <b>그래프가 아래로 향할수록</b> 당신의 목은 더 바르게 정렬되고 있습니다.</p>
             </div>
             <button onclick="location.reload()" class="main-btn btn-senior-mode" style="padding:20px; font-size:20px;">기록 저장 및 종료</button>
+            <p class="medical-disclaimer">본 서비스는 AI 분석을 통한 습관 교정 가이드이며, 의료 기기가 아닙니다. 통증이 지속될 경우 반드시 전문의와 상담하시기 바랍니다.</p>
         </div>
     </div>
 
@@ -137,24 +137,27 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                     const lms = results.multiFaceLandmarks[0];
-                    // 얼굴 가로 폭 계산 (턱 당기기 감지용)
                     const curW = Math.sqrt(Math.pow(lms[454].x - lms[234].x, 2) + Math.pow(lms[454].y - lms[234].y, 2));
                     const headLen = Math.abs(lms[152].y - lms[10].y);
+                    // 숙였을 때 각도가 변하는 것을 감안하여 임계값 보정
                     capturedAngle = Math.max(0, Math.round((0.48 - (Math.abs(lms[152].y - lms[1].y) / headLen)) * 200));
                     document.getElementById('angle-tag').innerText = `${capturedAngle}°`;
 
                     if (baseFaceWidth === 0 && !document.getElementById('step3').classList.contains('hidden')) baseFaceWidth = curW;
 
                     if (!document.getElementById('step4').classList.contains('hidden')) {
-                        // 턱을 당기면 얼굴이 카메라에 가까워져 폭(curW)이 커짐 (0.992 -> 1.0)
+                        // 턱을 당기면 얼굴 면적이 정면에서 볼 때 더 커짐(curW 증가)
+                        // 고개를 숙이면 오히려 curW가 작아지거나 유지되는 특성을 이용해 숙이기 방지
                         smoothDist = smoothDist * 0.8 + (curW / baseFaceWidth) * 0.2;
                         const now = Date.now();
                         if (exerciseState === "READY") {
-                            if (smoothDist < 0.992) { exerciseState = "IN_PROGRESS"; lastStateChangeTime = now; }
+                            // 확실히 턱을 뒤로 당겨서 면적이 커졌을 때(Z축 접근 효과)만 시작
+                            if (smoothDist < 0.994) { exerciseState = "IN_PROGRESS"; lastStateChangeTime = now; }
                         } 
                         else if (exerciseState === "IN_PROGRESS") {
-                            if (smoothDist >= 0.998) {
-                                if (now - lastStateChangeTime > 500) { exerciseState = "READY"; updateCount(); }
+                            // 다시 원래 자세로 돌아왔을 때 카운트
+                            if (smoothDist >= 1.002) {
+                                if (now - lastStateChangeTime > 600) { exerciseState = "READY"; updateCount(); }
                             }
                         }
                     }
@@ -183,10 +186,26 @@
             document.getElementById('final-angle').innerText = `${capturedAngle}°`;
             document.getElementById('final-kg').innerText = `${Math.round(capturedAngle * 0.4 + 5)}kg`;
             
-            let m = (capturedAngle <= 15) ? "바른 정렬 상태입니다!" : (capturedAngle <= 25) ? "자세가 조금 기울어져 있습니다." : "기울임이 큰 상태입니다.";
-            document.getElementById('metaphor-text').innerText = m;
-            document.getElementById('recom-period').innerText = (capturedAngle <= 15) ? "2주 케어" : (capturedAngle <= 25) ? "4주 케어" : "8주 집중";
-            document.getElementById('recom-goal').innerText = "12회 × 3세트";
+            let metaphor = ""; let effects = ""; let period = "";
+            if(capturedAngle <= 15) {
+                metaphor = "바른 정렬 상태입니다. 좋은 습관을 잘 유지하고 계시네요!";
+                effects = "피로 없는 목과 어깨, 가벼운 일상을 유지하는 힘이 됩니다.";
+                period = "2주 케어";
+                document.getElementById('recom-goal').innerText = "12회 × 3세트";
+            } else if(capturedAngle <= 25) {
+                metaphor = "자세가 조금 앞으로 기울어져 있습니다. 세심한 관리가 필요해요.";
+                effects = "굳어있던 뒷목이 풀리며 머리까지 맑아지는 시원함을 선사합니다.";
+                period = "4주 케어";
+                document.getElementById('recom-goal').innerText = "12회 × 4세트";
+            } else {
+                metaphor = "기울임이 큰 상태입니다. 꾸준한 습관 개선이 매우 중요합니다.";
+                effects = "지속적인 케어를 통해 목에 실리는 무게를 줄여 한결 편안한 상체를 만듭니다.";
+                period = "8주 집중 케어";
+                document.getElementById('recom-goal').innerText = "15회 × 5세트";
+            }
+            document.getElementById('metaphor-text').innerText = metaphor;
+            document.getElementById('clinical-effects').innerText = effects;
+            document.getElementById('recom-period').innerText = period;
             
             historyData.push({ date: new Date().toLocaleDateString('ko-KR', {day:'numeric', month:'short'}), angle: capturedAngle });
             localStorage.setItem('neckHistory', JSON.stringify(historyData.slice(-10)));
@@ -198,8 +217,8 @@
             if (chartInstance) chartInstance.destroy();
             chartInstance = new Chart(ctx, {
                 type: 'line', 
-                data: { labels: historyData.map(h => h.date), datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', tension: 0.4, fill: false }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                data: { labels: historyData.map(h => h.date), datasets: [{ data: historyData.map(h => h.angle), borderColor: '#3182f6', tension: 0.4, fill: false, pointRadius: 5 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
     </script>
