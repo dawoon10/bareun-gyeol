@@ -44,23 +44,28 @@
         video { width: 100%; height: 100%; object-fit: cover; filter: blur(20px) brightness(0.6); }
         canvas#ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; transform: scaleX(-1); }
         
-        /* 기능 설명 섹션 스타일 */
-        .feature-item { color: #4e5968; font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .senior-active .feature-item { font-size: 1.6rem !important; margin-bottom: 12px; }
+        .feature-card { background-color: #ffffff; border-radius: 20px; padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .feature-icon { font-size: 1.4rem; }
+        .feature-text { color: #4e5968; font-size: 1.05rem; font-weight: 600; }
+        .senior-active .feature-card { padding: 24px; border-radius: 28px; }
+        .senior-active .feature-text { font-size: 1.6rem !important; }
+        .senior-active .feature-icon { font-size: 2rem !important; }
     </style>
 </head>
 <body id="app-body">
     <div id="main-container" class="w-full max-w-md mx-auto p-4">
         <div id="step1" class="flex flex-col pt-12">
             <h1 class="txt-main mb-4 text-[#3182f6]">바른결</h1>
-            <p class="txt-sub mb-8 text-[#4e5968]">정갈한 자세가<br>바른 숨을 만듭니다.</p>
+            <p class="txt-sub mb-10 text-[#4e5968]">정갈한 자세가<br>바른 숨을 만듭니다.</p>
             
-            <div class="mb-12">
-                <div class="feature-item">
-                    <span style="color: #3182f6;">🔹</span> AI 실시간 자세 분석
+            <div class="mb-10">
+                <div class="feature-card">
+                    <span class="feature-icon">✨</span>
+                    <span class="feature-text">AI 실시간 자세 분석</span>
                 </div>
-                <div class="feature-item">
-                    <span style="color: #3182f6;">🔹</span> 기록이 남지 않는 안심 분석
+                <div class="feature-card">
+                    <span class="feature-icon">🛡️</span>
+                    <span class="feature-text">기록이 남지 않는 안심 분석</span>
                 </div>
             </div>
 
@@ -110,7 +115,7 @@
     </div>
 
     <script>
-        // 분석, 운동, 리포트 로직 절대 고정
+        // 로직 및 분석 단계 고정
         let faceMesh; let camera; let audioCtx;
         let count = 10; let capturedAngle = 0;
         let baseFaceWidth = 0; let exerciseState = "READY";
