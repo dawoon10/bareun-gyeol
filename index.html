@@ -1,39 +1,40 @@
-<div id="app-container" style="font-family: 'Pretendard', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; background: #fff; height: 100vh; display: flex; flex-direction: column; color: #191f28; position: relative;">
+<div id="app-container" style="font-family: 'Pretendard', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; color: #191f28; position: relative; padding: 0 24px;">
     
-    <div style="padding: 50px 24px 20px;">
+    <div style="padding-top: 60px; margin-bottom: 20px;">
         <h2 style="font-size: 26px; line-height: 1.35; font-weight: 800; margin: 0; letter-spacing: -0.8px;">
             얼굴만 비추면<br>
             <span style="color: #3182f6;">내 거북목 상태</span>를 알려드려요
         </h2>
     </div>
 
-    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 20px;">
-        <div style="font-size: 130px; animation: gentle-bounce 3s infinite ease-in-out;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="font-size: 100px; animation: gentle-bounce 3s infinite ease-in-out; display: inline-block;">
             🧘‍♂️
         </div>
     </div>
 
-    <div style="padding: 0 24px 140px;">
-        <p style="font-size: 14px; color: #8b95a1; font-weight: 600; margin-bottom: 20px;">이렇게 사용해요</p>
+    <div style="margin-bottom: 40px;">
+        <p style="font-size: 14px; color: #8b95a1; font-weight: 600; margin-bottom: 16px;">이렇게 사용해요</p>
         
-        <div style="display: flex; align-items: center; margin-bottom: 18px;">
-            <div style="width: 32px; height: 32px; background: #f2f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; font-weight: 800; color: #4e5968;">1</div>
+        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+            <div style="width: 28px; height: 28px; background: #f2f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 13px; font-weight: 800; color: #4e5968;">1</div>
             <div>
-                <div style="font-weight: 700; font-size: 16px;">카메라로 상체 비추기</div>
+                <div style="font-weight: 700; font-size: 16px;">상체 비추기</div>
                 <div style="color: #6b7684; font-size: 13px;">AI가 목 각도를 자동으로 분석해요</div>
             </div>
         </div>
+        
         <div style="display: flex; align-items: center;">
-            <div style="width: 32px; height: 32px; background: #f2f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; font-weight: 800; color: #4e5968;">2</div>
+            <div style="width: 28px; height: 28px; background: #f2f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 13px; font-weight: 800; color: #4e5968;">2</div>
             <div>
-                <div style="font-weight: 700; font-size: 16px;">맞춤형 교정 리포트</div>
-                <div style="color: #6b7684; font-size: 13px;">내 상태에 딱 맞는 운동법을 추천해요</div>
+                <div style="font-weight: 700; font-size: 16px;">교정 리포트</div>
+                <div style="color: #6b7684; font-size: 13px;">내 상태에 맞는 운동법을 추천해요</div>
             </div>
         </div>
     </div>
 
-    <div style="position: absolute; bottom: 34px; width: 100%; padding: 0 20px; box-sizing: border-box;">
-        <button style="width: 100%; padding: 20px; background: #3182f6; color: #fff; border: none; border-radius: 16px; font-size: 18px; font-weight: 700; cursor: pointer;">
+    <div style="position: fixed; bottom: 34px; left: 0; width: 100%; padding: 0 24px; box-sizing: border-box; max-width: 480px;">
+        <button style="width: 100%; padding: 18px; background: #3182f6; color: #fff; border: none; border-radius: 16px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);">
             시작하기
         </button>
     </div>
@@ -43,6 +44,6 @@
 <style>
 @keyframes gentle-bounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+    50% { transform: translateY(-10px); }
 }
 </style>
