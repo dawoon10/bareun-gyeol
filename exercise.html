@@ -3,31 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>운동 중 - 바른 결</title>
+    <title>바른 결 - 자세 측정</title>
     <style>
-        :root { --main-green: #556B2F; }
-        body { margin: 0; background: #111; color: white; font-family: -apple-system, sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        .timer-box { text-align: center; margin-bottom: 40px; }
-        .timer { font-size: 80px; font-weight: 800; color: var(--main-green); }
-        .guide-circle { width: 250px; height: 250px; border: 4px dashed var(--main-green); border-radius: 50%; animation: rotate 10s linear infinite; display: flex; align-items: center; justify-content: center; }
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        .guide-text { position: absolute; font-size: 20px; font-weight: bold; text-align: center; }
+        :root { --main-green: #556B2F; --text-light: #DDD; --text-dark: #333; --bg-dark: #1A1A1A; }
+        body { margin: 0; padding: 0; background: var(--bg-dark); font-family: -apple-system, sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; color: var(--text-light); }
+        
+        .header { width: 100%; text-align: center; padding-top: 60px; }
+        .header h1 { font-size: 24px; color: var(--text-light); margin: 0 0 10px; }
+        .header p { font-size: 15px; color: #AAA; margin: 0; }
+
+        .camera-view-container { 
+            flex: 1; display: flex; align-items: center; justify-content: center; 
+            position: relative; width: 100%; max-width: 400px; 
+            margin: 20px 0;
+        }
+        /* 사용자의 얼굴이 나오지 않게 배경 처리 + 가이드 */
+        .camera-placeholder { 
+            width: 90%; height: 90%; border: 2px dashed rgba(255,255,255,0.3); 
+            border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); /* 카메라 비활성 시 어두운 배경 */
+        }
+        .camera-placeholder img { width: 100px; opacity: 0.6; margin-bottom: 15px; } /* 기린 아이콘 */
+        .camera-placeholder p { font-size: 14px; color: #888; text-align: center; line-height: 1.4; }
+
+        .feedback-message { 
+            position: absolute; bottom: 20px; background: rgba(0,0,0,0.7); 
+            padding: 10px 20px; border-radius: 30px; font-size: 16px; 
+            color: var(--main-green); font-weight: bold;
+            opacity: 0; transition: opacity 0.5s ease-in-out;
+        }
+        .feedback-message.show { opacity: 1; }
+
+        .progress-bar { width: 80%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-bottom: 30px; position: relative; }
+        .progress-bar-fill { height: 100%; width: 0%; background: var(--main-green); border-radius: 4px; transition: width 1s linear; }
+
+        /* 가상의 기린 아이콘 (임시) */
+        .icon-giraffe {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5C12 21.5 12 19 12 18C12 17 10 15 8 15C6 15 4 17 4 18C4 19 4 21.5 4 21.5"></path><path d="M20 21.5C20 21.5 20 19 20 18C20 17 18 15 16 15C14 15 12 17 12 18C12 19 12 21.5 12 21.5"></path><path d="M12 3C14 3 16 5 16 7C16 9 14 11 12 11C10 11 8 9 8 7C8 5 10 3 12 3Z"></path><path d="M12 11V18"></path><path d="M8 18L4 21.5"></path><path d="M16 18L20 21.5"></path></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
-    <div class="timer-box">
-        <p>자세를 유지하세요</p>
-        <div id="count" class="timer">10</div>
+    <div class="header">
+        <h1>바른 결 - 자세 측정</h1>
+        <p>정면을 바라보며 자세를 유지해주세요</p>
     </div>
-    <div class="guide-circle"></div>
-    <div class="guide-text">화면 정면을<br>바라보세요</div>
+
+    <div class="camera-view-container">
+        <div class="camera-placeholder">
+            <span class="icon-giraffe"></span>
+            <p>카메라가 사용자의<br>자세를 분석 중입니다.</p>
+        </div>
+        <div id="feedbackMessage" class="feedback-message"></div>
+    </div>
+
+    <div class="progress-bar">
+        <div id="progressBarFill" class="progress-bar-fill"></div>
+    </div>
+
     <script>
-        let timeLeft = 10;
-        setInterval(() => {
-            timeLeft--;
-            document.getElementById('count').innerText = timeLeft;
-            if (timeLeft <= 0) location.href = 'report.html';
-        }, 1000);
+        const progressBarFill = document.getElementById('progressBarFill');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        let progress = 0;
+        const totalDuration = 10; // 10초 측정
+
+        const messages = [
+            "👍 자세 아주 좋아요!",
+            "✨ 목을 조금 더 펴볼까요?",
+            "💪 어깨를 살짝 뒤로 당겨보세요!",
+            "✅ 완벽한 자세입니다!"
+        ];
+        let messageIndex = 0;
+
+        const updateProgress = () => {
+            progress += (100 / totalDuration); // 1초마다 진행
+            if (progress > 100) progress = 100;
+            progressBarFill.style.width = `${progress}%`;
+
+            if (progress % 20 < 10 && progress < 100) { // 2초마다 메시지 변경 (데모용)
+                feedbackMessage.innerText = messages[messageIndex % messages.length];
+                feedbackMessage.classList.add('show');
+                messageIndex++;
+            } else if (progress % 20 >= 10) {
+                feedbackMessage.classList.remove('show');
+            }
+
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+                // 측정 완료 후 가상의 자세 데이터를 report.html로 전달 (실제는 POST 방식)
+                const mockResult = {
+                    neckStatus: 'good', // good, caution, severe
+                    neckAngle: Math.floor(Math.random() * 5) + 3, // 3~7도
+                    shoulderAlignment: Math.random() > 0.5 ? 'perfect' : 'aligned', // perfect, aligned, slightly_off
+                    loadReduction: (Math.random() * 5 + 3).toFixed(1) // 3.0~8.0kg
+                };
+                localStorage.setItem('bareunGyeolReportData', JSON.stringify(mockResult));
+                location.href = 'custom_exercise.html'; // 이제 custom_exercise.html로 이동
+            }
+        };
+
+        const progressInterval = setInterval(updateProgress, 1000);
     </script>
 </body>
 </html>
