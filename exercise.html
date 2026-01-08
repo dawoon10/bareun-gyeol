@@ -1,1 +1,33 @@
-
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>운동 중 - 바른 결</title>
+    <style>
+        :root { --main-green: #556B2F; }
+        body { margin: 0; background: #111; color: white; font-family: -apple-system, sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .timer-box { text-align: center; margin-bottom: 40px; }
+        .timer { font-size: 80px; font-weight: 800; color: var(--main-green); }
+        .guide-circle { width: 250px; height: 250px; border: 4px dashed var(--main-green); border-radius: 50%; animation: rotate 10s linear infinite; display: flex; align-items: center; justify-content: center; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        .guide-text { position: absolute; font-size: 20px; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="timer-box">
+        <p>자세를 유지하세요</p>
+        <div id="count" class="timer">10</div>
+    </div>
+    <div class="guide-circle"></div>
+    <div class="guide-text">화면 정면을<br>바라보세요</div>
+    <script>
+        let timeLeft = 10;
+        setInterval(() => {
+            timeLeft--;
+            document.getElementById('count').innerText = timeLeft;
+            if (timeLeft <= 0) location.href = 'report.html';
+        }, 1000);
+    </script>
+</body>
+</html>
