@@ -8,22 +8,54 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
         :root { --main-green: #556B2F; --bg-beige: #F9F9F7; }
-        body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; padding: 40px 20px; box-sizing: border-box; }
+        body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; padding: 40px 20px; box-sizing: border-box; overflow: hidden; }
         #input_video { display: none; }
         
-        .header { text-align: center; margin-bottom: 20px; }
+        .header { text-align: center; margin-bottom: 20px; z-index: 2; }
         .status-badge { background: #E8EDE0; color: var(--main-green); padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; display: inline-block; margin-bottom: 10px; }
         .ex-title { font-size: 24px; font-weight: bold; color: #333; margin: 0; }
         
         .visual-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; }
-        .giraffe-guide { width: 180px; transition: all 0.5s; }
         
-        /* 운동 가이드 카드 */
-        .method-card { background: white; width: 100%; padding: 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 30px; text-align: center; }
+        /* 기린 이미지 기본 스타일 및 회전 중심축 설정 */
+        .giraffe-guide { 
+            width: 200px; 
+            transition: all 0.5s; 
+            transform-origin: bottom center; /* 목 아래쪽을 중심으로 움직이게 설정 */
+        }
+
+        /* --- CSS 애니메이션 정의 --- */
+        
+        /* 1. 정상(Good): 좌우 까딱까딱 */
+        @keyframes tiltAnim {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); } /* 왼쪽 */
+            75% { transform: rotate(10deg); }  /* 오른쪽 */
+        }
+        .anim-tilt { animation: tiltAnim 3s ease-in-out infinite; }
+
+        /* 2. 주의(Caution): 앞뒤로 쭉쭉 (확대/축소로 표현) */
+        @keyframes stretchAnim {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.1) translateY(-15px); } /* 앞으로 나오는 느낌 */
+        }
+        .anim-stretch { animation: stretchAnim 2.5s ease-in-out infinite; }
+
+        /* 3. 심각(Severe): 뒤로 젖히기 (하늘 보기) */
+        @keyframes lookUpAnim {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-20deg) translateY(-10px); } /* 뒤로 젖히는 느낌 */
+        }
+        .anim-lookup { animation: lookUpAnim 3s ease-in-out infinite; }
+        
+        /* ------------------------- */
+
+        .method-card { background: white; width: 100%; padding: 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 30px; text-align: center; z-index: 2; }
         .method-card strong { color: var(--main-green); display: block; margin-bottom: 8px; font-size: 17px; }
         .method-card p { margin: 0; font-size: 15px; color: #666; line-height: 1.5; }
 
-        .counter { font-size: 70px; font-weight: 900; color: var(--main-green); margin-bottom: 10px; }
+        .counter { font-size: 70px; font-weight: 900; color: var(--main-green); margin-bottom: 10px; position: absolute; bottom: 20%; text-shadow: 2px 2px 4px rgba(255,255,255,0.8); }
+        .target-count { color: #AAA; font-weight: bold; position: absolute; bottom: 15%; }
     </style>
 </head>
 <body>
@@ -35,54 +67,66 @@
     </div>
 
     <div class="visual-box">
-        <img id="giraffeImg" src="giraffe-character.png" class="giraffe-guide" alt="Giraffe" onerror="this.src='https://img.icons8.com/illustrations/parallax/512/giraffe.png'">
+        <img id="giraffeImg" src="giraffe-character.png" class="giraffe-guide" alt="운동하는 기린" onerror="this.src='https://img.icons8.com/illustrations/parallax/512/giraffe.png'">
         <div id="counter" class="counter">0</div>
-        <div id="targetCount" style="color: #AAA; font-weight: bold;">/ 0회</div>
+        <div id="targetCount" class="target-count">/ 0회</div>
     </div>
 
     <div class="method-card">
         <strong id="methodName">운동 방법</strong>
-        <p id="methodDesc">AI 가이드를 따라주세요.</p>
+        <p id="methodDesc">기린의 움직임을 따라해보세요.</p>
     </div>
 
     <script>
         const videoElement = document.getElementById('input_video');
+        // 테스트를 위해 기본값을 'caution'이나 'severe'로 바꿔서 애니메이션을 확인해보세요.
         const data = JSON.parse(localStorage.getItem('bareunGyeolReportData') || '{"neckStatus":"good"}');
         
-        // 1. 단계별 운동 종류 및 횟수 정의
+        // 운동 종류별 정보 및 적용할 애니메이션 클래스 정의
         const exerciseLibrary = {
             good: {
                 badge: "✨ 결이 맑은 상태",
                 title: "기린 고개 까딱 운동",
-                method: "유연성 유지",
-                desc: "기린처럼 고개를 좌우로 천천히 기울이며 목 옆 라인의 결을 정리해주세요.",
-                target: 5
+                method: "좌우 스트레칭",
+                desc: "기린처럼 고개를 좌우로 천천히 기울여 옆 목을 늘려주세요.",
+                target: 5,
+                animClass: 'anim-tilt' // 좌우 까딱 애니메이션 적용
             },
             caution: {
                 badge: "🌿 결이 조금 흐려진 상태",
                 title: "기린 목 쭉쭉 운동",
-                method: "긴장 완화 스트레칭",
-                desc: "어깨를 고정한 채 턱을 앞으로 쭉 밀었다가, 다시 등 뒤로 바짝 당겨주세요.",
-                target: 8
+                method: "전후 스트레칭",
+                desc: "턱을 앞으로 쭉 내밀었다가, 다시 목 뒤로 바짝 당겨주세요.",
+                target: 8,
+                animClass: 'anim-stretch' // 앞뒤 쭉쭉 애니메이션 적용
             },
             severe: {
                 badge: "🔋 결 에너지가 필요한 상태",
                 title: "기린 하늘 보기 운동",
-                method: "집중 교정 동작",
-                desc: "가슴을 펴고 고개를 완전히 뒤로 젖혀 하늘을 보세요. 굽은 경추를 바로잡는 데 효과적입니다.",
-                target: 12
+                method: "신전 운동 (젖히기)",
+                desc: "가슴을 펴고 고개를 천천히 뒤로 젖혀 하늘을 바라보세요.",
+                target: 12,
+                animClass: 'anim-lookup' // 뒤로 젖히기 애니메이션 적용
             }
         };
 
-        const config = exerciseLibrary[data.neckStatus];
+        const config = exerciseLibrary[data.neckStatus] || exerciseLibrary.good;
         
-        // UI 적용
+        // UI 및 애니메이션 적용
         document.getElementById('statusBadge').innerText = config.badge;
         document.getElementById('exTitle').innerText = config.title;
         document.getElementById('methodName').innerText = `[${config.method}]`;
         document.getElementById('methodDesc').innerText = config.desc;
         document.getElementById('targetCount').innerText = `/ ${config.target}회 완료하기`;
+        
+        // **핵심: 상태에 맞는 애니메이션 클래스를 기린 이미지에 추가**
+        const giraffeImg = document.getElementById('giraffeImg');
+        // 기존 애니메이션 클래스 제거 후 새 클래스 추가
+        giraffeImg.classList.remove('anim-tilt', 'anim-stretch', 'anim-lookup');
+        giraffeImg.classList.add(config.animClass);
 
+
+        // --- AI 카운팅 로직 (기존과 동일) ---
         let count = 0;
         let isMoving = false;
 
@@ -91,6 +135,7 @@
             const nose = results.poseLandmarks[0];
 
             // 실제 움직임 감지 로직 (상태별로 다른 동작 기준 적용 가능)
+            // 여기서는 공통적으로 고개를 숙였다 드는 동작을 감지합니다.
             if (!isMoving && nose.y > 0.55) { 
                 isMoving = true;
             } 
