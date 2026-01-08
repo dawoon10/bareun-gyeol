@@ -9,90 +9,103 @@
     <style>
         :root { --main-green: #556B2F; --bg-beige: #F9F9F7; }
         body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; padding: 20px; box-sizing: border-box; overflow: hidden; }
+        #input_video { position: fixed; top: 10px; left: 10px; width: 80px; height: 60px; border-radius: 8px; border: 2px solid var(--main-green); z-index: 10; transform: scaleX(-1); opacity: 0.7; }
         
-        /* 테스트를 위해 카메라를 아주 작게 왼쪽 상단에 표시 (확인용) */
-        #input_video { position: fixed; top: 10px; left: 10px; width: 80px; height: 60px; border-radius: 8px; border: 2px solid var(--main-green); z-index: 10; transform: scaleX(-1); }
-        
-        .header { text-align: center; margin-top: 40px; }
-        .status-badge { background: #E8EDE0; color: var(--main-green); padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; margin-bottom: 10px; display: inline-block; }
-        
+        .header { text-align: center; margin-top: 40px; z-index: 5; }
         .visual-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; position: relative; }
-        
-        /* 기린 이미지 애니메이션 설정 */
         .giraffe-guide { width: 220px; transform-origin: bottom center; z-index: 5; }
         
+        /* 애니메이션 효과 */
+        .anim-tilt { animation: tilt 3s infinite; }
+        .anim-stretch { animation: stretch 2s infinite; }
+        .anim-lookup { animation: lookup 3s infinite; }
         @keyframes tilt { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
         @keyframes stretch { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1) translateY(-10px); } }
         @keyframes lookup { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-20deg); } }
 
-        .anim-tilt { animation: tilt 3s infinite; }
-        .anim-stretch { animation: stretch 2s infinite; }
-        .anim-lookup { animation: lookup 3s infinite; }
-
         .counter-box { position: absolute; bottom: 10%; text-align: center; }
-        .count-num { font-size: 80px; font-weight: 900; color: var(--main-green); line-height: 1; }
+        .count-num { font-size: 90px; font-weight: 900; color: var(--main-green); line-height: 1; transition: transform 0.2s; }
+        .count-num.bump { transform: scale(1.2); } /* 카운트될 때 툭 튀어나오는 효과 */
         
-        .debug-status { font-size: 12px; color: red; margin-top: 10px; font-weight: bold; } /* 인식 상태 확인용 */
+        .guide-text { background: white; padding: 12px 25px; border-radius: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
     <video id="input_video" autoplay playsinline></video>
     
     <div class="header">
-        <div id="statusBadge" class="status-badge">분석 완료</div>
-        <h1 id="exTitle" style="font-size: 22px; margin: 0;">맞춤 스트레칭</h1>
-        <div id="debugStatus" class="debug-status">카메라 초기화 중...</div>
+        <h1 id="exTitle" style="font-size: 24px; margin: 0;">맞춤 스트레칭</h1>
+        <div id="guideText" class="guide-text">카메라 앞에 서주세요</div>
     </div>
 
     <div class="visual-box">
-        <img id="giraffeImg" src="giraffe-character.png" class="giraffe-guide" alt="Giraffe" 
-             onerror="this.src='https://img.icons8.com/illustrations/parallax/512/giraffe.png'">
-        
+        <img id="giraffeImg" src="giraffe-character.png" class="giraffe-guide" alt="Giraffe" onerror="this.src='https://img.icons8.com/illustrations/parallax/512/giraffe.png'">
         <div class="counter-box">
             <div id="counter" class="count-num">0</div>
-            <div id="targetLabel" style="color: #AAA; font-weight: bold;">/ 5회 완료</div>
+            <div id="targetLabel" style="color: #AAA; font-weight: bold; margin-top: 10px;">/ 5회 완료</div>
         </div>
     </div>
 
     <script>
         const videoElement = document.getElementById('input_video');
-        const debugStatus = document.getElementById('debugStatus');
+        const guideText = document.getElementById('guideText');
+        const counterEl = document.getElementById('counter');
         const data = JSON.parse(localStorage.getItem('bareunGyeolReportData') || '{"neckStatus":"good"}');
 
         const config = {
-            good: { title: "고개 까딱 운동", target: 5, anim: 'anim-tilt' },
-            caution: { title: "목 쭉쭉 운동", target: 8, anim: 'anim-stretch' },
-            severe: { title: "하늘 보기 운동", target: 12, anim: 'anim-lookup' }
+            good: { title: "기린 고개 까딱 운동", target: 5, anim: 'anim-tilt' },
+            caution: { title: "기린 목 쭉쭉 운동", target: 8, anim: 'anim-stretch' },
+            severe: { title: "기린 하늘 보기 운동", target: 12, anim: 'anim-lookup' }
         }[data.neckStatus];
 
         document.getElementById('exTitle').innerText = config.title;
-        document.getElementById('targetLabel').innerText = `/ ${config.target}회 완료`;
+        document.getElementById('targetLabel').innerText = `/ ${config.target}회 완료하기`;
         document.getElementById('giraffeImg').classList.add(config.anim);
 
         let count = 0;
         let isDown = false;
+        let baselineY = null; // 유저의 평소 머리 높이
 
         function onResults(results) {
             if (!results.poseLandmarks) {
-                debugStatus.innerText = "⚠️ 사람을 찾을 수 없습니다 (화면에 몸이 보이게 해주세요)";
-                debugStatus.style.color = "red";
+                guideText.innerText = "⚠️ 몸이 잘 보이게 해주세요";
+                guideText.style.color = "red";
                 return;
             }
             
-            debugStatus.innerText = "✅ AI 인식 중: 움직여보세요!";
-            debugStatus.style.color = "green";
-
             const nose = results.poseLandmarks[0];
+            
+            // 1. 기준점 잡기 (처음 인식된 위치를 기준으로 설정)
+            if (baselineY === null) {
+                baselineY = nose.y;
+                guideText.innerText = "✅ 준비 완료! 움직여보세요";
+                guideText.style.color = "green";
+                return;
+            }
 
-            // 카운팅 감도 조절 (0.5가 화면 정중앙)
-            if (!isDown && nose.y > 0.52) { // 고개를 숙였을 때
+            // 2. 상대적 이동 계산 (기준점에서 얼마나 내려갔는가)
+            const moveDiff = nose.y - baselineY;
+
+            // 내려감 감지 (기준점에서 0.05만큼만 내려가도 인식 - 매우 민감)
+            if (!isDown && moveDiff > 0.05) {
                 isDown = true;
+                guideText.innerText = "좋아요! 다시 올라오세요";
+                guideText.style.color = "#556B2F";
             } 
-            if (isDown && nose.y < 0.45) { // 다시 들었을 때
+            
+            // 다시 올라옴 감지 (기준점 근처로 돌아오면 카운트)
+            if (isDown && moveDiff < 0.02) {
                 isDown = false;
                 count++;
-                document.getElementById('counter').innerText = count;
-                if (count >= config.target) location.href = 'report.html';
+                counterEl.innerText = count;
+                counterEl.classList.add('bump');
+                setTimeout(() => counterEl.classList.remove('bump'), 200);
+                
+                guideText.innerText = "참 잘했어요! ✨";
+
+                if (count >= config.target) {
+                    location.href = 'report.html';
+                }
             }
         }
 
