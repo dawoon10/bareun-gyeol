@@ -1,1 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>맞춤 운동 - 바른 결</title>
+    <style>
+        :root { --main-green: #556B2F; --bg-beige: #F9F9F7; }
+        body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; padding: 40px 20px; box-sizing: border-box; overflow: hidden; }
+        
+        .status-badge { background: #E8EDE0; color: var(--main-green); padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-bottom: 20px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .exercise-title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 10px; color: #333; }
+        
+        /* 기린 캐릭터 가이드 애니메이션 */
+        .exercise-visual { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; position: relative; }
+        .giraffe-guide { width: 200px; animation: moveNeck 3s ease-in-out infinite; }
+        
+        /* 기린이 목 운동을 하는 듯한 애니메이션 */
+        @keyframes moveNeck {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            50% { transform: rotate(-10deg) translateY(-10px); }
+        }
 
+        .counter-container { text-align: center; margin-bottom: 40px; }
+        .count-display { font-size: 72px; font-weight: 900; color: var(--main-green); line-height: 1; }
+        .count-total { font-size: 20px; color: #AAA; font-weight: bold; }
+
+        .instruction-card { background: white; padding: 20px 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; width: 100%; }
+        .instruction-card p { margin: 0; font-size: 16px; color: #555; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div id="statusBadge" class="status-badge">데이터 분석 완료!</div>
+    
+    <div id="exTitle" class="exercise-title">기린 목 스트레칭</div>
+    <p style="color: #888; text-align: center; font-size: 14px; margin-top: 0;">기린 캐릭터의 움직임에 맞춰<br>천천히 고개를 움직여보세요.</p>
+
+    <div class="exercise-visual">
+        <img src="giraffe-character.png" alt="운동 가이드 기린" class="giraffe-guide" onerror="this.src='https://img.icons8.com/illustrations/parallax/512/giraffe.png'">
+        <div style="margin-top: 20px; font-size: 12px; color: var(--main-green); font-weight: bold; letter-spacing: 1px;">AI 실시간 움직임 감지 중</div>
+    </div>
+
+    <div class="counter-container">
+        <span id="currentCount" class="count-display">0</span>
+        <span id="totalCount" class="count-total">/ 5회</span>
+    </div>
+
+    <div class="instruction-card">
+        <p id="actionMsg">준비 되셨나요? 시작합니다!</p>
+    </div>
+
+    <script>
+        // exercise.html에서 저장한 AI 분석 데이터 불러오기
+        const resultData = JSON.parse(localStorage.getItem('bareunGyeolReportData') || '{"neckStatus":"good"}');
+        
+        const statusBadge = document.getElementById('statusBadge');
+        const exTitle = document.getElementById('exTitle');
+        const totalCountLabel = document.getElementById('totalCount');
+        const actionMsg = document.getElementById('actionMsg');
+
+        let goalCount = 5;
+
+        // 1. 상태별 맞춤 설정 (심각/주의 등 불쾌한 단어 제거)
+        if (resultData.neckStatus === 'good') {
+            statusBadge.innerText = "✨ 결이 아주 맑고 고운 상태예요";
+            exTitle.innerText = "유연함을 더하는 결 유지 운동";
+            goalCount = 5;
+        } else if (resultData.neckStatus === 'caution') {
+            statusBadge.innerText = "🌿 결을 조금 다듬어주면 좋겠어요";
+            exTitle.innerText = "긴장을 풀어주는 결 순환 운동";
+            goalCount = 8;
+        } else {
+            statusBadge.innerText = "🔋 결에 새로운 에너지가 필요해요";
+            exTitle.innerText = "정렬을 찾아주는 집중 결 교정";
+            goalCount = 12;
+        }
+
+        totalCountLabel.innerText = `/ ${goalCount}회`;
+
+        // 2. 카운팅 시뮬레이션 (AI가 움직임을 감지하여 카운트하는 연출)
+        let currentCount = 0;
+        const startExercise = () => {
+            const exerciseInterval = setInterval(() => {
+                currentCount++;
+                document.getElementById('currentCount').innerText = currentCount;
+                
+                // 매 카운트마다 격려 메시지
+                if (currentCount % 2 === 0) actionMsg.innerText = "정말 잘하고 있어요! 조금만 더!";
+                else actionMsg.innerText = "좋아요! 기린처럼 쭉 펴보세요.";
+
+                if (currentCount >= goalCount) {
+                    clearInterval(exerciseInterval);
+                    actionMsg.innerText = "🎉 모든 운동 완료! 리포트를 확인하세요.";
+                    actionMsg.style.color = "var(--main-green)";
+                    
+                    // 완료 후 리포트로 이동
+                    setTimeout(() => {
+                        location.href = 'report.html';
+                    }, 2000);
+                }
+            }, 3000); // 3초에 1회씩 카운트 (동작 속도 고려)
+        };
+
+        // 페이지 로드 1.5초 후 운동 시작
+        setTimeout(startExercise, 1500);
+    </script>
+</body>
+</html>
