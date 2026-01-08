@@ -1,1 +1,30 @@
-
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>리포트 - 바른 결</title>
+    <style>
+        :root { --main-green: #556B2F; }
+        body { margin: 0; background: #F2F2F7; font-family: -apple-system, sans-serif; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; box-sizing: border-box; }
+        .report-card { background: white; border-radius: 24px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); text-align: center; width: 100%; max-width: 400px; }
+        .score-value { font-size: 64px; font-weight: 800; color: var(--main-green); margin: 10px 0 20px; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-item { background: #F9F9F9; padding: 15px; border-radius: 16px; }
+        .stat-item .value { font-size: 18px; font-weight: bold; }
+        .btn-done { width: 100%; padding: 20px; border: none; border-radius: 16px; background: #1C1C1E; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="report-card">
+        <div style="color: #8E8E93;">오늘의 바른 결 지수</div>
+        <div class="score-value">95점</div>
+        <div class="stats">
+            <div class="stat-item"><div style="font-size: 12px; color: #8E8E93;">거북목 상태</div><div class="value">바름</div></div>
+            <div class="stat-item"><div style="font-size: 12px; color: #8E8E93;">유지 시간</div><div class="value">03:00</div></div>
+        </div>
+        <p style="color: #636366; font-size: 14px; line-height: 1.5; margin-bottom: 25px;">기린처럼 곧은 목을 유지하셨네요!<br>내일도 바른 결을 찾아보세요.</p>
+        <button class="btn-done" onclick="location.href='index.html'">확인</button>
+    </div>
+</body>
+</html>
