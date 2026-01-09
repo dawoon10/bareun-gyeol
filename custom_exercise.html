@@ -10,19 +10,20 @@
         :root { --main-green: #556B2F; --bg-beige: #F9F9F7; }
         body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
         
-        /* [중요] 비디오 화면은 숨김 처리 (얼굴 노출 방지) */
+        /* 비디오는 데이터 분석용으로만 사용 (숨김) */
         #input_video { display: none; }
 
-        .status-badge { background: var(--main-green); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; }
+        .status-badge { background: var(--main-green); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; z-index: 10; }
         
-        /* 기린 애니메이션 영역 */
-        .character-box { width: 320px; height: 380px; display: flex; justify-content: center; align-items: center; background: white; border-radius: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        #giraffe-guide { width: 75%; transition: all 0.3s ease; }
+        .character-box { width: 320px; height: 380px; display: flex; justify-content: center; align-items: center; background: white; border-radius: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-bottom: 30px; position: relative; }
+        #giraffe-guide { width: 75%; height: auto; transition: all 0.3s ease; }
 
-        /* 카운트 디자인 */
         .count-area { text-align: center; }
-        .count-number { font-size: 72px; font-weight: 900; color: var(--main-green); line-height: 1; }
-        .count-label { font-size: 18px; color: #888; margin-top: 10px; font-weight: 500; }
+        .count-number { font-size: 80px; font-weight: 900; color: var(--main-green); line-height: 1; transition: transform 0.2s; }
+        .count-label { font-size: 18px; color: #888; margin-top: 15px; font-weight: 500; }
+        
+        /* 카운트될 때 팡 터지는 효과 */
+        .bump { transform: scale(1.2); }
 
         /* 하늘 보기 애니메이션 (Severe) */
         .motion-severe { animation: skyLook 2.5s ease-in-out infinite; }
@@ -31,17 +32,17 @@
 </head>
 <body>
 
-    <video id="input_video"></video>
+    <video id="input_video" playsinline></video>
 
-    <div id="status-badge" class="status-badge">분석 결과 확인 중</div>
+    <div id="status-badge" class="status-badge">AI 준비 중...</div>
 
     <div class="character-box">
         <img id="giraffe-guide" src="normal_logo.png" alt="기린 가이드">
     </div>
 
     <div class="count-area">
-        <div class="count-number"><span id="current-count">0</span> / <span id="target-count">--</span></div>
-        <div id="instruction" class="count-label">기린을 따라 동작을 반복하세요</div>
+        <div class="count-number" id="count-div"><span id="current-count">0</span> / <span id="target-count">--</span></div>
+        <div id="instruction" class="count-label">카메라를 향해 바르게 서주세요</div>
     </div>
 
     <script>
@@ -51,31 +52,29 @@
         const targetDisplay = document.getElementById('target-count');
         const statusBadge = document.getElementById('status-badge');
         const instruction = document.getElementById('instruction');
+        const countDiv = document.getElementById('count-div');
         
         let count = 0;
         let targetCount = 0;
         let isMoving = false;
-        let exerciseTimer = null;
+        let userStatus = 'good';
 
-        // 1. 분석 데이터 기반 설정 (위험할수록 횟수 감소)
-        const reportData = JSON.parse(localStorage.getItem('bareunGyeolReportData')) || { neckStatus: 'good' };
-        const userStatus = reportData.neckStatus;
-
+        // 1. 초기 설정
         function initExercise() {
+            const reportData = JSON.parse(localStorage.getItem('bareunGyeolReportData'));
+            userStatus = reportData ? reportData.neckStatus : 'good';
+
             if (userStatus === 'good') {
                 targetCount = 12;
-                statusBadge.innerText = "정상 단계 (Good)";
-                instruction.innerText = "좌우로 천천히 고개를 기울이세요";
-                startAnim(['tilt_left.png', 'normal_logo.png', 'tilt_right.png', 'normal_logo.png'], 900);
+                statusBadge.innerText = "정상 단계: 좌우 까딱";
+                startAnim(['tilt_left.png', 'normal_logo.png', 'tilt_right.png', 'normal_logo.png'], 1000);
             } else if (userStatus === 'caution') {
                 targetCount = 10;
-                statusBadge.innerText = "주의 단계 (Caution)";
-                instruction.innerText = "목을 위로 쭉쭉 늘려주세요";
-                startAnim(['stretch_normal.png', 'stretch_long.png'], 850);
+                statusBadge.innerText = "주의 단계: 위아래 쭉쭉";
+                startAnim(['stretch_normal.png', 'stretch_long.png'], 900);
             } else {
-                targetCount = 5; // 위험 단계는 안전하게 5회만
-                statusBadge.innerText = "위험 단계 (Severe)";
-                instruction.innerText = "부드럽게 하늘을 바라보세요";
+                targetCount = 5;
+                statusBadge.innerText = "위험 단계: 하늘 보기";
                 imgTag.classList.add('motion-severe');
             }
             targetDisplay.innerText = targetCount;
@@ -83,15 +82,17 @@
 
         function startAnim(frames, speed) {
             let i = 0;
-            exerciseTimer = setInterval(() => {
+            setInterval(() => {
                 imgTag.src = frames[i];
                 i = (i + 1) % frames.length;
             }, speed);
         }
 
-        // 2. 실시간 동작 감지 (백그라운드에서 실행)
+        // 2. 동작 감지 (민감도 대폭 상향)
         function onResults(results) {
             if (!results.poseLandmarks) return;
+            
+            statusBadge.innerText = "동작 감지 중...";
             const landmarks = results.poseLandmarks;
             const nose = landmarks[0];
             const leftEar = landmarks[7];
@@ -99,22 +100,27 @@
             const leftShoulder = landmarks[11];
             const rightShoulder = landmarks[12];
 
-            // 동작 감지 기준 (CVA 응용)
+            // [핵심] 컴퓨터 환경(상반신만 보임)에 최적화된 거리 계산
             if (userStatus === 'good') {
-                const earShoulderGap = Math.min(Math.abs(leftEar.y - leftShoulder.y), Math.abs(rightEar.y - rightShoulder.y));
-                if (earShoulderGap < 0.12 && !isMoving) { // 귀가 어깨에 가까워지면
+                // 좌우 기울기: 귀와 어깨의 수직 거리 차이가 눈에 띄게 줄어들 때
+                const leftDist = Math.abs(leftEar.y - leftShoulder.y);
+                const rightDist = Math.abs(rightEar.y - rightShoulder.y);
+                if ((leftDist < 0.18 || rightDist < 0.18) && !isMoving) {
                     updateCount();
-                } else if (earShoulderGap > 0.18) { isMoving = false; }
+                } else if (leftDist > 0.22 && rightDist > 0.22) { isMoving = false; }
             } 
             else if (userStatus === 'caution') {
-                if (nose.y < 0.42 && !isMoving) { // 코가 위로 올라가면
+                // 위아래 쭉쭉: 코의 높이 변화 감지 (컴퓨터 화면 기준)
+                if (nose.y < 0.4 && !isMoving) { 
                     updateCount();
-                } else if (nose.y > 0.48) { isMoving = false; }
+                } else if (nose.y > 0.45) { isMoving = false; }
             } 
             else if (userStatus === 'severe') {
-                if (nose.y < landmarks[1].y - 0.04 && !isMoving) { // 턱을 들면
+                // 하늘 보기: 코가 두 눈 사이의 평균 높이보다 확연히 올라갈 때
+                const eyeY = (landmarks[1].y + landmarks[4].y) / 2;
+                if (nose.y < eyeY - 0.03 && !isMoving) { 
                     updateCount();
-                } else if (nose.y >= landmarks[1].y) { isMoving = false; }
+                } else if (nose.y >= eyeY) { isMoving = false; }
             }
         }
 
@@ -122,7 +128,11 @@
             count++;
             isMoving = true;
             countDisplay.innerText = count;
-            // 성공 알림음 등을 넣을 수 있는 자리
+            
+            // 시각적 피드백 (숫자가 커졌다 작아짐)
+            countDiv.classList.add('bump');
+            setTimeout(() => countDiv.classList.remove('bump'), 200);
+
             if (count >= targetCount) {
                 setTimeout(() => {
                     alert("축하합니다! 운동을 완료했습니다.");
@@ -132,7 +142,7 @@
         }
 
         const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
-        pose.setOptions({ modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+        pose.setOptions({ modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         pose.onResults(onResults);
 
         const camera = new Camera(videoElement, {
