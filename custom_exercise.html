@@ -3,108 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바른 결 - 맞춤 스트레칭</title>
+    <title>맞춤 스트레칭 - 바른 결</title>
     <style>
         :root { --main-green: #556B2F; }
-        body { margin: 0; background: #f9f9f9; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        body { margin: 0; background: #f9f9f9; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; box-sizing: border-box; }
         
-        h2 { color: var(--main-green); margin-bottom: 30px; }
+        .info-area { text-align: center; margin-bottom: 30px; }
+        .status-label { color: var(--main-green); font-weight: bold; font-size: 1.2rem; }
+        h2 { margin: 10px 0; font-size: 1.5rem; line-height: 1.4; }
 
-        /* 기린 이미지가 들어갈 박스 */
-        .character-display {
-            width: 300px;
-            height: 350px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: white;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            margin-bottom: 40px;
-            overflow: hidden;
+        .display-box {
+            width: 100%; max-width: 320px; height: 350px; background: white; 
+            border-radius: 30px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px;
         }
+        #giraffe-guide { width: 70%; height: auto; transition: all 0.3s; }
 
-        #giraffe-guide {
-            width: 80%;
-            height: auto;
-            transition: all 0.3s ease;
-        }
-
-        /* [3번 동작] 하늘 보기 CSS 애니메이션 */
-        .motion-severe {
-            animation: skyLook 2s ease-in-out infinite;
-        }
-
-        @keyframes skyLook {
+        /* 하늘 보기 효과 (Severe) */
+        .sky-motion { animation: skyAnim 2s ease-in-out infinite; }
+        @keyframes skyAnim {
             0%, 100% { transform: scaleY(1) translateY(0); }
-            50% { transform: scaleY(0.7) translateY(-40px); } /* 턱을 들어 올리는 효과 */
+            50% { transform: scaleY(0.7) translateY(-40px); }
         }
 
-        .button-group { display: grid; gap: 15px; width: 100%; max-width: 400px; }
-        .btn {
-            padding: 20px;
-            border: none;
-            border-radius: 15px;
-            background: white;
-            color: #333;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: 0.2s;
+        .btn-next {
+            width: 100%; max-width: 320px; padding: 20px; border: none; border-radius: 18px;
+            background: #1c1c1e; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer;
         }
-        .btn:active { transform: scale(0.95); background: var(--main-green); color: white; }
     </style>
 </head>
 <body>
 
-    <h2 id="exercise-title">기린을 따라 스트레칭 하세요!</h2>
-
-    <div class="character-display">
-        <img id="giraffe-guide" src="normal_logo.png" alt="기린 가이드">
+    <div class="info-area">
+        <div id="status-text" class="status-label">분석 데이터 확인 중...</div>
+        <h2 id="exercise-msg">유저님께 필요한 운동입니다</h2>
     </div>
 
-    <div class="button-group">
-        <button class="btn" onclick="playExercise('good')">1단계: 좌우로 까딱</button>
-        <button class="btn" onclick="playExercise('caution')">2단계: 위아래로 쭉쭉</button>
-        <button class="btn" onclick="playExercise('severe')">3단계: 하늘 높이 보기</button>
-        <button class="btn" onclick="location.href='report.html'" style="margin-top:20px; background:#1c1c1e; color:white;">최종 리포트 확인</button>
+    <div class="display-box">
+        <img id="giraffe-guide" src="normal_logo.png" alt="기린">
     </div>
+
+    <button class="btn-next" onclick="location.href='report.html'">분석 결과 상세보기</button>
 
     <script>
-        const imgTag = document.getElementById('giraffe-guide');
-        let exerciseTimer = null;
+        const img = document.getElementById('giraffe-guide');
+        const statusTxt = document.getElementById('status-text');
+        const msgTxt = document.getElementById('exercise-msg');
+        
+        // 1. 데이터 가져오기
+        const data = JSON.parse(localStorage.getItem('bareunGyeolReportData'));
+        const status = data ? data.neckStatus : 'good';
 
-        function playExercise(type) {
-            // 초기화
-            if (exerciseTimer) clearInterval(exerciseTimer);
-            imgTag.classList.remove('motion-severe');
-            imgTag.src = 'normal_logo.png';
-
-            if (type === 'good') {
-                // 1번: 좌-정면-우-정면 (유저님 파일명 반영)
+        // 2. 단계별 운동 자동 세팅
+        function setExercise() {
+            if (status === 'good') {
+                statusTxt.innerText = "● 정상 단계";
+                msgTxt.innerHTML = "목의 피로를 풀어주는<br>좌우 까딱 스트레칭";
+                
                 const frames = ['tilt_left.png', 'normal_logo.png', 'tilt_right.png', 'normal_logo.png'];
                 let i = 0;
-                exerciseTimer = setInterval(() => {
-                    imgTag.src = frames[i];
+                setInterval(() => {
+                    img.src = frames[i];
                     i = (i + 1) % frames.length;
-                }, 800);
+                }, 900);
             } 
-            else if (type === 'caution') {
-                // 2번: 보통-쭉쭉 (유저님 파일명 반영)
+            else if (status === 'caution') {
+                statusTxt.innerText = "● 주의 단계";
+                msgTxt.innerHTML = "굽은 목을 펴주는<br>앞뒤 쭉쭉 스트레칭";
+                
                 const frames = ['stretch_normal.png', 'stretch_long.png'];
                 let i = 0;
-                exerciseTimer = setInterval(() => {
-                    imgTag.src = frames[i];
+                setInterval(() => {
+                    img.src = frames[i];
                     i = (i + 1) % frames.length;
                 }, 800);
             } 
-            else if (type === 'severe') {
-                // 3번: 하늘 보기 (CSS 애니메이션 사용)
-                imgTag.src = 'normal_logo.png';
-                imgTag.classList.add('motion-severe');
+            else if (status === 'severe') {
+                statusTxt.innerText = "● 위험 단계";
+                msgTxt.innerHTML = "거북목 교정에 필수!<br>하늘 높이 보기 운동";
+                
+                img.src = 'normal_logo.png';
+                img.classList.add('sky-motion');
             }
         }
+
+        window.onload = setExercise;
     </script>
 </body>
 </html>
