@@ -8,23 +8,62 @@
         :root { --main-green: #556B2F; }
         body { margin: 0; background: #F2F2F7; font-family: -apple-system, sans-serif; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; box-sizing: border-box; }
         .report-card { background: white; border-radius: 24px; padding: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); text-align: center; width: 100%; max-width: 400px; }
+        
+        /* 기린 로고 스타일 */
+        .report-logo { width: 80px; height: auto; margin-bottom: 10px; animation: fadeIn 1s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
         .score-value { font-size: 64px; font-weight: 800; color: var(--main-green); margin: 10px 0 20px; }
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .stat-item { background: #F9F9F9; padding: 15px; border-radius: 16px; }
         .stat-item .value { font-size: 18px; font-weight: bold; }
-        .btn-done { width: 100%; padding: 20px; border: none; border-radius: 16px; background: #1C1C1E; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .btn-done { width: 100%; padding: 20px; border: none; border-radius: 16px; background: #1C1C1E; color: white; font-size: 18px; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+        .btn-done:active { opacity: 0.8; }
     </style>
 </head>
 <body>
     <div class="report-card">
+        <img src="normal_logo.png" alt="기린 로고" class="report-logo">
+        
         <div style="color: #8E8E93;">오늘의 바른 결 지수</div>
-        <div class="score-value">95점</div>
+        <div class="score-value" id="score-display">--점</div>
+        
         <div class="stats">
-            <div class="stat-item"><div style="font-size: 12px; color: #8E8E93;">거북목 상태</div><div class="value">바름</div></div>
-            <div class="stat-item"><div style="font-size: 12px; color: #8E8E93;">유지 시간</div><div class="value">03:00</div></div>
+            <div class="stat-item">
+                <div style="font-size: 12px; color: #8E8E93;">거북목 상태</div>
+                <div class="value" id="status-display">분석 중</div>
+            </div>
+            <div class="stat-item">
+                <div style="font-size: 12px; color: #8E8E93;">하중 감소</div>
+                <div class="value" id="load-display">0kg</div>
+            </div>
         </div>
-        <p style="color: #636366; font-size: 14px; line-height: 1.5; margin-bottom: 25px;">기린처럼 곧은 목을 유지하셨네요!<br>내일도 바른 결을 찾아보세요.</p>
-        <button class="btn-done" onclick="location.href='index.html'">확인</button>
+        
+        <p id="comment-display" style="color: #636366; font-size: 14px; line-height: 1.5; margin-bottom: 25px;">
+            데이터를 불러오는 중입니다...
+        </p>
+        
+        <button class="btn-done" onclick="location.href='custom_exercise.html'">맞춤 스트레칭 시작</button>
     </div>
+
+    <script>
+        // 분석 결과 불러오기
+        const reportData = JSON.parse(localStorage.getItem('bareunGyeolReportData'));
+
+        if (reportData) {
+            const statusMap = {
+                'good': { text: '바름', score: '95', comment: '기린처럼 곧은 목을 유지하셨네요!<br>지금처럼만 관리해 주세요.' },
+                'caution': { text: '주의', score: '70', comment: '목이 조금 앞으로 나왔어요.<br>함께 스트레칭해볼까요?' },
+                'severe': { text: '위험', score: '45', comment: '거북목 증상이 뚜렷합니다.<br>지금 바로 교정 운동이 필요해요!' }
+            };
+
+            const result = statusMap[reportData.neckStatus] || statusMap['good'];
+
+            document.getElementById('status-display').innerText = result.text;
+            document.getElementById('score-display').innerText = result.score + '점';
+            document.getElementById('comment-display').innerHTML = result.comment;
+            document.getElementById('load-display').innerText = reportData.loadReduction + 'kg';
+        }
+    </script>
 </body>
 </html>
