@@ -3,93 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바른 결 - AI 맞춤 운동</title>
+    <title>바른 결 - 맞춤 운동</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
-        :root { --main-green: #556B2F; --bg-light: #F9F9F7; }
-        body { margin: 0; background: var(--bg-light); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        :root { --main-green: #556B2F; --bg-beige: #F9F9F7; }
+        body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
         
-        .header { text-align: center; padding: 30px 20px; }
-        .status-badge { background: var(--main-green); color: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+        /* [중요] 비디오 화면은 숨김 처리 (얼굴 노출 방지) */
+        #input_video { display: none; }
 
-        /* 운동 가이드 영역 (기린 애니메이션) */
-        .guide-container { width: 100%; max-width: 400px; height: 250px; display: flex; justify-content: center; align-items: center; background: white; border-radius: 20px; margin-bottom: 20px; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        #giraffe-animation { width: 150px; height: auto; transition: all 0.3s; }
+        .status-badge { background: var(--main-green); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; }
+        
+        /* 기린 애니메이션 영역 */
+        .character-box { width: 320px; height: 380px; display: flex; justify-content: center; align-items: center; background: white; border-radius: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        #giraffe-guide { width: 75%; transition: all 0.3s ease; }
 
-        /* 실시간 카메라 영역 */
-        .camera-box { width: 280px; height: 210px; border-radius: 15px; overflow: hidden; background: #000; position: relative; border: 3px solid var(--main-green); }
-        #input_video { width: 100%; height: 100%; object-fit: cover; transform: rotateY(180deg); }
+        /* 카운트 디자인 */
+        .count-area { text-align: center; }
+        .count-number { font-size: 72px; font-weight: 900; color: var(--main-green); line-height: 1; }
+        .count-label { font-size: 18px; color: #888; margin-top: 10px; font-weight: 500; }
 
-        /* 카운트 오버레이 */
-        .count-display { margin-top: 20px; text-align: center; }
-        .count-number { font-size: 48px; font-weight: 800; color: var(--main-green); }
-        .progress-text { color: #666; font-size: 18px; }
-
-        /* 하늘 보기 효과 */
-        .sky-motion { animation: skyAnim 2s ease-in-out infinite; }
-        @keyframes skyAnim { 0%, 100% { transform: scaleY(1) translateY(0); } 50% { transform: scaleY(0.7) translateY(-30px); } }
+        /* 하늘 보기 애니메이션 (Severe) */
+        .motion-severe { animation: skyLook 2.5s ease-in-out infinite; }
+        @keyframes skyLook { 0%, 100% { transform: scaleY(1) translateY(0); } 50% { transform: scaleY(0.7) translateY(-40px); } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span id="status-badge" class="status-badge">분석 결과 확인 중</span>
-        <h2 id="exercise-title" style="margin: 10px 0;">기린을 따라 움직이세요!</h2>
-        <p id="exercise-desc" style="color: #666; font-size: 14px;">실제 동작을 감지하여 카운트가 올라갑니다.</p>
+    <video id="input_video"></video>
+
+    <div id="status-badge" class="status-badge">분석 결과 확인 중</div>
+
+    <div class="character-box">
+        <img id="giraffe-guide" src="normal_logo.png" alt="기린 가이드">
     </div>
 
-    <div class="guide-container">
-        <img id="giraffe-animation" src="normal_logo.png" alt="기린 가이드">
-    </div>
-
-    <div class="camera-box">
-        <video id="input_video"></video>
-    </div>
-
-    <div class="count-display">
-        <div class="count-number"><span id="current-count">0</span> / <span id="target-count">0</span></div>
-        <div class="progress-text">운동 완료까지</div>
+    <div class="count-area">
+        <div class="count-number"><span id="current-count">0</span> / <span id="target-count">--</span></div>
+        <div id="instruction" class="count-label">기린을 따라 동작을 반복하세요</div>
     </div>
 
     <script>
         const videoElement = document.getElementById('input_video');
-        const imgTag = document.getElementById('giraffe-animation');
+        const imgTag = document.getElementById('giraffe-guide');
         const countDisplay = document.getElementById('current-count');
         const targetDisplay = document.getElementById('target-count');
+        const statusBadge = document.getElementById('status-badge');
+        const instruction = document.getElementById('instruction');
         
         let count = 0;
         let targetCount = 0;
-        let isMoving = false; // 동작 중복 감지 방지용
+        let isMoving = false;
         let exerciseTimer = null;
 
-        // 1. 분석 결과 데이터 및 횟수 설정 (안전 최우선 기준)
+        // 1. 분석 데이터 기반 설정 (위험할수록 횟수 감소)
         const reportData = JSON.parse(localStorage.getItem('bareunGyeolReportData')) || { neckStatus: 'good' };
         const userStatus = reportData.neckStatus;
 
-        function setupExercise() {
+        function initExercise() {
             if (userStatus === 'good') {
-                targetCount = 12; // 건강한 상태: 충분한 반복
-                targetDisplay.innerText = targetCount;
-                document.getElementById('status-badge').innerText = "정상 단계";
-                document.getElementById('exercise-title').innerText = "좌우 까딱 스트레칭";
-                startGiraffeAnim(['tilt_left.png', 'normal_logo.png', 'tilt_right.png', 'normal_logo.png'], 800);
+                targetCount = 12;
+                statusBadge.innerText = "정상 단계 (Good)";
+                instruction.innerText = "좌우로 천천히 고개를 기울이세요";
+                startAnim(['tilt_left.png', 'normal_logo.png', 'tilt_right.png', 'normal_logo.png'], 900);
             } else if (userStatus === 'caution') {
-                targetCount = 10; // 주의 상태: 적절한 이완
-                targetDisplay.innerText = targetCount;
-                document.getElementById('status-badge').innerText = "주의 단계";
-                document.getElementById('exercise-title').innerText = "위아래로 쭉쭉 스트레칭";
-                startGiraffeAnim(['stretch_normal.png', 'stretch_long.png'], 800);
+                targetCount = 10;
+                statusBadge.innerText = "주의 단계 (Caution)";
+                instruction.innerText = "목을 위로 쭉쭉 늘려주세요";
+                startAnim(['stretch_normal.png', 'stretch_long.png'], 850);
             } else {
-                targetCount = 5; // 위험 상태: 최소한의 부드러운 교정
-                targetDisplay.innerText = targetCount;
-                document.getElementById('status-badge').innerText = "위험 단계";
-                document.getElementById('exercise-title').innerText = "부드러운 하늘 보기";
-                imgTag.classList.add('sky-motion');
+                targetCount = 5; // 위험 단계는 안전하게 5회만
+                statusBadge.innerText = "위험 단계 (Severe)";
+                instruction.innerText = "부드럽게 하늘을 바라보세요";
+                imgTag.classList.add('motion-severe');
             }
+            targetDisplay.innerText = targetCount;
         }
 
-        function startGiraffeAnim(frames, speed) {
+        function startAnim(frames, speed) {
             let i = 0;
             exerciseTimer = setInterval(() => {
                 imgTag.src = frames[i];
@@ -97,7 +89,7 @@
             }, speed);
         }
 
-        // 2. MediaPipe Pose를 이용한 실시간 동작 감지
+        // 2. 실시간 동작 감지 (백그라운드에서 실행)
         function onResults(results) {
             if (!results.poseLandmarks) return;
             const landmarks = results.poseLandmarks;
@@ -107,47 +99,40 @@
             const leftShoulder = landmarks[11];
             const rightShoulder = landmarks[12];
 
-            // [동작 감지 로직]
+            // 동작 감지 기준 (CVA 응용)
             if (userStatus === 'good') {
-                // 좌우 까딱: 귀와 어깨의 수직 거리(Y)가 가까워졌는가?
-                const leftGap = Math.abs(leftEar.y - leftShoulder.y);
-                const rightGap = Math.abs(rightEar.y - rightShoulder.y);
-                if ((leftGap < 0.15 || rightGap < 0.15) && !isMoving) {
-                    incrementCount();
-                } else if (leftGap > 0.2 && rightGap > 0.2) {
-                    isMoving = false; // 원위치 복귀 시 리셋
-                }
+                const earShoulderGap = Math.min(Math.abs(leftEar.y - leftShoulder.y), Math.abs(rightEar.y - rightShoulder.y));
+                if (earShoulderGap < 0.12 && !isMoving) { // 귀가 어깨에 가까워지면
+                    updateCount();
+                } else if (earShoulderGap > 0.18) { isMoving = false; }
             } 
             else if (userStatus === 'caution') {
-                // 위아래 쭉쭉: 코의 높이가 이전 프레임보다 높아졌는가?
-                if (nose.y < 0.45 && !isMoving) { // 임계값은 실제 테스트 후 조정 가능
-                    incrementCount();
-                } else if (nose.y > 0.5) {
-                    isMoving = false;
-                }
+                if (nose.y < 0.42 && !isMoving) { // 코가 위로 올라가면
+                    updateCount();
+                } else if (nose.y > 0.48) { isMoving = false; }
             } 
             else if (userStatus === 'severe') {
-                // 하늘 보기: 코가 눈보다 확실히 높이 올라갔는가?
-                if (nose.y < landmarks[1].y - 0.05 && !isMoving) {
-                    incrementCount();
-                } else if (nose.y >= landmarks[1].y) {
-                    isMoving = false;
-                }
+                if (nose.y < landmarks[1].y - 0.04 && !isMoving) { // 턱을 들면
+                    updateCount();
+                } else if (nose.y >= landmarks[1].y) { isMoving = false; }
             }
         }
 
-        function incrementCount() {
+        function updateCount() {
             count++;
             isMoving = true;
             countDisplay.innerText = count;
+            // 성공 알림음 등을 넣을 수 있는 자리
             if (count >= targetCount) {
-                alert("훌륭합니다! 맞춤 운동을 완료했습니다.");
-                location.href = 'report.html';
+                setTimeout(() => {
+                    alert("축하합니다! 운동을 완료했습니다.");
+                    location.href = 'report.html';
+                }, 500);
             }
         }
 
         const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
-        pose.setOptions({ modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        pose.setOptions({ modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
         pose.onResults(onResults);
 
         const camera = new Camera(videoElement, {
@@ -156,7 +141,7 @@
         });
 
         window.onload = () => {
-            setupExercise();
+            initExercise();
             camera.start();
         };
     </script>
