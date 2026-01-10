@@ -3,38 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바른 결 - 맞춤 운동</title>
+    <title>바른 결 - AI 맞춤 운동</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
         :root { --main-green: #556B2F; --bg-beige: #F9F9F7; }
         body { margin: 0; background: var(--bg-beige); font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
         
-        /* 비디오는 데이터 분석용으로만 사용 (숨김) */
-        #input_video { display: none; }
+        #input_video { display: none; } /* 얼굴 노출 방지 */
 
-        .status-badge { background: var(--main-green); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; z-index: 10; }
+        .status-badge { background: var(--main-green); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; }
         
         .character-box { width: 320px; height: 380px; display: flex; justify-content: center; align-items: center; background: white; border-radius: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-bottom: 30px; position: relative; }
-        #giraffe-guide { width: 75%; height: auto; transition: all 0.3s ease; }
+        #giraffe-guide { width: 75%; height: auto; transition: all 0.3s ease; transform-origin: bottom center; }
+
+        /* [개선] 하늘 보기 애니메이션 - 더 역동적으로 고안 */
+        .motion-severe { 
+            animation: skyLookAdvanced 3s ease-in-out infinite; 
+        }
+        @keyframes skyLookAdvanced {
+            0%, 100% { transform: scaleY(1) rotate(0deg); }
+            50% { transform: scaleY(0.6) rotateX(-30deg) translateY(-20px); } /* 고개를 뒤로 확 젖히는 느낌 */
+        }
 
         .count-area { text-align: center; }
-        .count-number { font-size: 80px; font-weight: 900; color: var(--main-green); line-height: 1; transition: transform 0.2s; }
-        .count-label { font-size: 18px; color: #888; margin-top: 15px; font-weight: 500; }
-        
-        /* 카운트될 때 팡 터지는 효과 */
-        .bump { transform: scale(1.2); }
-
-        /* 하늘 보기 애니메이션 (Severe) */
-        .motion-severe { animation: skyLook 2.5s ease-in-out infinite; }
-        @keyframes skyLook { 0%, 100% { transform: scaleY(1) translateY(0); } 50% { transform: scaleY(0.7) translateY(-40px); } }
+        .count-number { font-size: 80px; font-weight: 900; color: var(--main-green); line-height: 1; transition: 0.2s; }
+        .count-label { font-size: 18px; color: #888; margin-top: 15px; }
+        .bump { transform: scale(1.3); color: #FFD700; } /* 카운트 시 강조 효과 */
     </style>
 </head>
 <body>
 
     <video id="input_video" playsinline></video>
 
-    <div id="status-badge" class="status-badge">AI 준비 중...</div>
+    <div id="status-badge" class="status-badge">AI 분석 준비 완료</div>
 
     <div class="character-box">
         <img id="giraffe-guide" src="normal_logo.png" alt="기린 가이드">
@@ -42,7 +44,7 @@
 
     <div class="count-area">
         <div class="count-number" id="count-div"><span id="current-count">0</span> / <span id="target-count">--</span></div>
-        <div id="instruction" class="count-label">카메라를 향해 바르게 앉아주세요</div>
+        <div id="instruction" class="count-label">기린을 따라 천천히 움직여보세요</div>
     </div>
 
     <script>
@@ -51,7 +53,6 @@
         const countDisplay = document.getElementById('current-count');
         const targetDisplay = document.getElementById('target-count');
         const statusBadge = document.getElementById('status-badge');
-        const instruction = document.getElementById('instruction');
         const countDiv = document.getElementById('count-div');
         
         let count = 0;
@@ -59,22 +60,21 @@
         let isMoving = false;
         let userStatus = 'good';
 
-        // 1. 초기 설정
         function initExercise() {
-            const reportData = JSON.parse(localStorage.getItem('bareunGyeolReportData'));
-            userStatus = reportData ? reportData.neckStatus : 'good';
+            const data = JSON.parse(localStorage.getItem('bareunGyeolReportData'));
+            userStatus = data ? data.neckStatus : 'good';
 
             if (userStatus === 'good') {
                 targetCount = 12;
-                statusBadge.innerText = "정상 단계: 좌우 까딱";
+                statusBadge.innerText = "정상 단계 스트레칭";
                 startAnim(['tilt_left.png', 'normal_logo.png', 'tilt_right.png', 'normal_logo.png'], 1000);
             } else if (userStatus === 'caution') {
                 targetCount = 10;
-                statusBadge.innerText = "주의 단계: 위아래 쭉쭉";
+                statusBadge.innerText = "주의 단계 스트레칭";
                 startAnim(['stretch_normal.png', 'stretch_long.png'], 900);
             } else {
                 targetCount = 5;
-                statusBadge.innerText = "위험 단계: 하늘 보기";
+                statusBadge.innerText = "위험 단계 스트레칭";
                 imgTag.classList.add('motion-severe');
             }
             targetDisplay.innerText = targetCount;
@@ -88,39 +88,31 @@
             }, speed);
         }
 
-        // 2. 동작 감지 (민감도 대폭 상향)
+        // 동작 감지 로직 (민감도 최적화)
         function onResults(results) {
             if (!results.poseLandmarks) return;
-            
-            statusBadge.innerText = "동작 감지 중...";
-            const landmarks = results.poseLandmarks;
-            const nose = landmarks[0];
-            const leftEar = landmarks[7];
-            const rightEar = landmarks[8];
-            const leftShoulder = landmarks[11];
-            const rightShoulder = landmarks[12];
+            const lm = results.poseLandmarks;
+            const nose = lm[0];
+            const leftEar = lm[7];
+            const rightEar = lm[8];
 
-            // [핵심] 컴퓨터 환경(상반신만 보임)에 최적화된 거리 계산
+            // 1. 정상 단계: 고개 좌우 기울기
             if (userStatus === 'good') {
-                // 좌우 기울기: 귀와 어깨의 수직 거리 차이가 눈에 띄게 줄어들 때
-                const leftDist = Math.abs(leftEar.y - leftShoulder.y);
-                const rightDist = Math.abs(rightEar.y - rightShoulder.y);
-                if ((leftDist < 0.18 || rightDist < 0.18) && !isMoving) {
-                    updateCount();
-                } else if (leftDist > 0.22 && rightDist > 0.22) { isMoving = false; }
+                // 양쪽 귀의 높이 차이가 확연해지면 카운트
+                const earDiff = Math.abs(leftEar.y - rightEar.y);
+                if (earDiff > 0.08 && !isMoving) { updateCount(); }
+                else if (earDiff < 0.03) { isMoving = false; }
             } 
+            // 2. 주의 단계: 목 위로 뽑기
             else if (userStatus === 'caution') {
-                // 위아래 쭉쭉: 코의 높이 변화 감지 (컴퓨터 화면 기준)
-                if (nose.y < 0.4 && !isMoving) { 
-                    updateCount();
-                } else if (nose.y > 0.45) { isMoving = false; }
+                if (nose.y < 0.35 && !isMoving) { updateCount(); }
+                else if (nose.y > 0.45) { isMoving = false; }
             } 
+            // 3. 위험 단계: 하늘 보기 (턱 들기)
             else if (userStatus === 'severe') {
-                // 하늘 보기: 코가 두 눈 사이의 평균 높이보다 확연히 올라갈 때
-                const eyeY = (landmarks[1].y + landmarks[4].y) / 2;
-                if (nose.y < eyeY - 0.03 && !isMoving) { 
-                    updateCount();
-                } else if (nose.y >= eyeY) { isMoving = false; }
+                // 눈(1번 마커)보다 코가 위로 올라가면 카운트
+                if (nose.y < lm[1].y - 0.02 && !isMoving) { updateCount(); }
+                else if (nose.y >= lm[1].y) { isMoving = false; }
             }
         }
 
@@ -128,14 +120,12 @@
             count++;
             isMoving = true;
             countDisplay.innerText = count;
-            
-            // 시각적 피드백 (숫자가 커졌다 작아짐)
             countDiv.classList.add('bump');
-            setTimeout(() => countDiv.classList.remove('bump'), 200);
+            setTimeout(() => countDiv.classList.remove('bump'), 300);
 
             if (count >= targetCount) {
                 setTimeout(() => {
-                    alert("축하합니다! 운동을 완료했습니다.");
+                    alert("운동 완료! 리포트를 확인하세요.");
                     location.href = 'report.html';
                 }, 500);
             }
@@ -150,10 +140,7 @@
             width: 640, height: 480
         });
 
-        window.onload = () => {
-            initExercise();
-            camera.start();
-        };
+        window.onload = () => { initExercise(); camera.start(); };
     </script>
 </body>
 </html>
